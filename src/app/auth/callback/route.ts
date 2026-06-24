@@ -7,6 +7,8 @@ export async function GET(req: NextRequest) {
   const code = searchParams.get('code')
   const next = searchParams.get('next') ?? '/dashboard'
 
+  const errorDesc = searchParams.get('error_description') || searchParams.get('error')
+
   if (code) {
     const cookieStore = await cookies()
     const supabase = createServerClient(
@@ -22,7 +24,8 @@ export async function GET(req: NextRequest) {
     )
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) return NextResponse.redirect(new URL(next, origin))
+    return NextResponse.redirect(new URL(`/auth?error=${encodeURIComponent(error.message)}`, origin))
   }
 
-  return NextResponse.redirect(new URL('/auth?error=auth_failed', origin))
+  return NextResponse.redirect(new URL(`/auth?error=${encodeURIComponent(errorDesc || 'Authentication failed')}`, origin))
 }

@@ -33,7 +33,12 @@ BEGIN
   INSERT INTO profiles (id, org_name, plan)
   VALUES (
     NEW.id,
-    COALESCE(NEW.raw_user_meta_data ->> 'org_name', 'My Organization'),
+    COALESCE(
+      NULLIF(NEW.raw_user_meta_data ->> 'org_name', ''),
+      NULLIF(NEW.raw_user_meta_data ->> 'full_name', ''),
+      SPLIT_PART(COALESCE(NEW.raw_user_meta_data ->> 'name', ''), ' ', 1),
+      'My Organization'
+    ),
     'starter'
   );
   RETURN NEW;

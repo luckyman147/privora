@@ -17,6 +17,10 @@ interface CountRow {
   form_id: string
 }
 
+interface ProfileRow {
+  org_name: string
+}
+
 async function FormsList({ userId }: { userId: string }) {
   const supabase = await getSupabase()
   const { data: rawForms } = await supabase
@@ -69,16 +73,92 @@ async function FormsList({ userId }: { userId: string }) {
 
 export default async function DashboardPage() {
   const user = await requireAuth().catch(() => redirect('/auth'))
+  const supabase = await getSupabase()
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('org_name')
+    .eq('id', user.id)
+    .maybeSingle()
+
+  const metadata = user.user_metadata ?? {}
+  const displayName =
+    metadata.full_name ??
+    metadata.name ??
+    metadata.user_name ??
+    (profile as ProfileRow | null | undefined)?.org_name ??
+    user.email ??
+    'Account'
+  const avatarUrl = metadata.avatar_url ?? metadata.picture ?? ''
+
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden">
       <div className="flex-1 overflow-y-auto">
-        <div className="flex items-center justify-between p-7 bg-white border-b border-slate-200">
-          <h1 className="text-xl font-extrabold tracking-tight">My Forms</h1>
-          <Link href="/builder" className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-sky-500 rounded-lg shadow-sm">
-            + Create form
-          </Link>
+        <div className="border-b border-slate-200 bg-white px-7 py-6">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-center gap-4">
+              <div className="h-14 w-14 overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-slate-200">
+                {avatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={avatarUrl}
+                    alt={displayName}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-lg font-bold text-slate-600">
+                    {displayName.slice(0, 1).toUpperCase()}
+                  </div>
+                )}
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+                  Signed in as
+                </p>
+                <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">
+                  {displayName}
+                </h1>
+                <p className="text-sm text-slate-500">{user.email}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+                  Organization
+                </p>
+                <p className="font-semibold text-slate-900">
+                  {(profile as ProfileRow | null | undefined)?.org_name ?? 'My Organization'}
+                </p>
+              </div>
+              <Link href="/builder" className="flex items-center gap-2 rounded-xl bg-sky-500 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-600">
+                + Create form
+              </Link>
+            </div>
+          </div>
         </div>
+
         <div className="p-7">
+          <div className="mb-6 grid gap-4 sm:grid-cols-3">
+            <div className="rounded-2xl border border-slate-200 bg-white p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+                Email
+              </p>
+              <p className="mt-2 break-all text-sm font-semibold text-slate-900">{user.email}</p>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-white p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+                Name
+              </p>
+              <p className="mt-2 text-sm font-semibold text-slate-900">{displayName}</p>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-white p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+                Status
+              </p>
+              <p className="mt-2 text-sm font-semibold text-emerald-600">Authenticated</p>
+            </div>
+          </div>
+
           <Suspense fallback={<DashboardLoading />}>
             <FormsList userId={user.id} />
           </Suspense>

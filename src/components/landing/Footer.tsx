@@ -2,8 +2,6 @@ import Link from 'next/link'
 import Image from 'next/image'
 
 export default function Footer() {
-  const currentYear = new Date().getFullYear()
-
   const footerLinks = {
     product: [
       { label: 'Features', href: '#' },
@@ -106,7 +104,7 @@ export default function Footer() {
           <div className='flex flex-col md:flex-row md:items-center md:justify-between gap-4'>
             {/* Copyright */}
             <p className='text-xs text-slate-500'>
-              © {currentYear} Privora, Inc. All rights reserved.
+              © 2026 Privora, Inc. All rights reserved.
             </p>
 
             {/* Tagline */}

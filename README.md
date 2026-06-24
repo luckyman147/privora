@@ -26,16 +26,16 @@ Privacy-first form platform. Build surveys, elections, and feedback forms with c
 
 ## Tech Stack
 
-| Layer | Choice |
-|---|---|
-| **Framework** | Next.js 14 (App Router, React Server Components) |
-| **Language** | TypeScript 5.4 |
-| **Styling** | Tailwind CSS 3.4 |
-| **Auth & DB** | Supabase (PostgreSQL, Auth, RLS) |
-| **Validation** | Zod |
-| **State** | Zustand |
-| **Deploy** | Netlify |
-| **CI/CD** | GitHub Actions |
+| Layer          | Choice                                           |
+| -------------- | ------------------------------------------------ |
+| **Framework**  | Next.js 14 (App Router, React Server Components) |
+| **Language**   | TypeScript 5.4                                   |
+| **Styling**    | Tailwind CSS 3.4                                 |
+| **Auth & DB**  | Supabase (PostgreSQL, Auth, RLS)                 |
+| **Validation** | Zod                                              |
+| **State**      | Zustand                                          |
+| **Deploy**     | Netlify                                          |
+| **CI/CD**      | GitHub Actions                                   |
 
 ## Getting Started
 
@@ -61,11 +61,11 @@ Copy the example env file and fill in your Supabase credentials:
 cp .env.example .env.local
 ```
 
-| Variable | Description |
-|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Your Supabase publishable (anon) key |
-| `NEXT_PUBLIC_SITE_URL` | App URL (`http://localhost:3000` for dev) |
+| Variable                               | Description                               |
+| -------------------------------------- | ----------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`             | Your Supabase project URL                 |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Your Supabase publishable (anon) key      |
+| `NEXT_PUBLIC_SITE_URL`                 | App URL (`http://localhost:3000` for dev) |
 
 ### 3. Run Database Migrations
 
@@ -154,86 +154,91 @@ Every push to `main` triggers an automated pipeline:
 Lint → Typecheck → Test → npm Audit → Snyk Scan → CodeQL Analysis → DB Migrate → Build → Deploy
 ```
 
-| Job | Tool | Description |
-|---|---|---|
-| **lint** | `next lint` | ESLint with Next.js config |
-| **typecheck** | `tsc --noEmit` | Full TypeScript check |
-| **test** | `vitest` | Unit tests |
-| **security-audit** | `npm audit` | High-severity dependency check |
-| **snyk-scan** | Snyk CLI | Open-source vulnerability scanning |
-| **codeql-analysis** | GitHub CodeQL | Semantic code analysis |
-| **db-migrate** | Supabase CLI | Push SQL migrations to Supabase |
-| **build-and-deploy** | Next.js + Netlify | Production build + deploy |
+| Job                  | Tool              | Description                        |
+| -------------------- | ----------------- | ---------------------------------- |
+| **lint**             | `next lint`       | ESLint with Next.js config         |
+| **typecheck**        | `tsc --noEmit`    | Full TypeScript check              |
+| **test**             | `vitest`          | Unit tests                         |
+| **security-audit**   | `npm audit`       | High-severity dependency check     |
+| **snyk-scan**        | Snyk CLI          | Open-source vulnerability scanning |
+| **codeql-analysis**  | GitHub CodeQL     | Semantic code analysis             |
+| **db-migrate**       | Supabase CLI      | Push SQL migrations to Supabase    |
+| **build-and-deploy** | Next.js + Netlify | Production build + deploy          |
 
 ### Required GitHub Secrets
 
-| Secret | Purpose |
-|---|---|
-| `SNYK_TOKEN` | Snyk API token (free tier) |
-| `NETLIFY_AUTH_TOKEN` | Netlify personal access token |
-| `NETLIFY_SITE_ID` | Netlify site API ID |
+| Secret                  | Purpose                        |
+| ----------------------- | ------------------------------ |
+| `SNYK_TOKEN`            | Snyk API token (free tier)     |
+| `NETLIFY_AUTH_TOKEN`    | Netlify personal access token  |
+| `NETLIFY_SITE_ID`       | Netlify site API ID            |
 | `SUPABASE_ACCESS_TOKEN` | Supabase personal access token |
-| `SUPABASE_PROJECT_ID` | Supabase project reference |
+| `SUPABASE_PROJECT_ID`   | Supabase project reference     |
 
 ## Database Schema
 
 ### `profiles`
+
 Stores user organization info. Auto-created on signup via a trigger on `auth.users`.
 
-| Column | Type | Notes |
-|---|---|---|
-| `id` | UUID | PK, references `auth.users` |
-| `org_name` | TEXT | Organization name |
-| `plan` | TEXT | `starter` / `club` / `institution` |
-| `created_at` | TIMESTAMPTZ | Auto-generated |
+| Column       | Type        | Notes                              |
+| ------------ | ----------- | ---------------------------------- |
+| `id`         | UUID        | PK, references `auth.users`        |
+| `org_name`   | TEXT        | Organization name                  |
+| `plan`       | TEXT        | `starter` / `club` / `institution` |
+| `created_at` | TIMESTAMPTZ | Auto-generated                     |
 
 ### `forms`
+
 The core entity — each form has a dynamic `questions` (JSON array) and `trust_config` (JSON object).
 
-| Column | Type | Notes |
-|---|---|---|
-| `id` | UUID | PK, auto-generated |
-| `owner_id` | UUID | FK → `profiles.id` |
-| `title` | TEXT | Form title |
-| `description` | TEXT | Optional |
-| `mode` | TEXT | `survey` or `election` |
-| `trust_config` | JSONB | Privacy settings |
-| `questions` | JSONB | Question definitions |
-| `status` | TEXT | `draft` / `active` / `closed` |
-| `closes_at` | TIMESTAMPTZ | Optional closing time |
+| Column         | Type        | Notes                         |
+| -------------- | ----------- | ----------------------------- |
+| `id`           | UUID        | PK, auto-generated            |
+| `owner_id`     | UUID        | FK → `profiles.id`            |
+| `title`        | TEXT        | Form title                    |
+| `description`  | TEXT        | Optional                      |
+| `mode`         | TEXT        | `survey` or `election`        |
+| `trust_config` | JSONB       | Privacy settings              |
+| `questions`    | JSONB       | Question definitions          |
+| `status`       | TEXT        | `draft` / `active` / `closed` |
+| `closes_at`    | TIMESTAMPTZ | Optional closing time         |
 
 ### `responses`
+
 Stores form submissions.
 
-| Column | Type | Notes |
-|---|---|---|
-| `id` | UUID | PK |
-| `form_id` | UUID | FK → `forms.id` |
-| `answers` | JSONB | Question ID → answer mapping |
-| `submitted_at` | TIMESTAMPTZ | Auto-generated |
+| Column         | Type        | Notes                        |
+| -------------- | ----------- | ---------------------------- |
+| `id`           | UUID        | PK                           |
+| `form_id`      | UUID        | FK → `forms.id`              |
+| `answers`      | JSONB       | Question ID → answer mapping |
+| `submitted_at` | TIMESTAMPTZ | Auto-generated               |
 
 ### `submission_tokens`
+
 Prevents duplicate submissions. Stores a hash of `formId:userSeed`.
 
-| Column | Type | Notes |
-|---|---|---|
-| `hash` | TEXT | PK |
-| `form_id` | UUID | FK → `forms.id` |
-| `created_at` | TIMESTAMPTZ | Auto-generated |
+| Column       | Type        | Notes           |
+| ------------ | ----------- | --------------- |
+| `hash`       | TEXT        | PK              |
+| `form_id`    | UUID        | FK → `forms.id` |
+| `created_at` | TIMESTAMPTZ | Auto-generated  |
 
 ## Trust Score System
 
 Each form has a configurable **Trust Configuration** that determines its privacy level:
 
-| Setting | Options | Trust Points |
-|---|---|---|
-| **Visibility** | Creator only / Org / Public | +1 for creator_only |
-| **Identity** | Anonymous / Optional / Required | +1 for anonymous |
-| **IP Storage** | Not stored / Hashed / Stored | +1 for not stored |
-| **Submission Limit** | 1 per person / Unlimited | +1 for 1 per person |
-| **Retention** | 30 / 90 / 180 / 365 days | +1 for ≤90 days |
+| Setting              | Options                         | Trust Points        |
+| -------------------- | ------------------------------- | ------------------- |
+| **Visibility**       | Creator only / Org / Public     | +1 for creator_only |
+| **Identity**         | Anonymous / Optional / Required | +1 for anonymous    |
+| **IP Storage**       | Not stored / Hashed / Stored    | +1 for not stored   |
+| **Submission Limit** | 1 per person / Unlimited        | +1 for 1 per person |
+| **Retention**        | 30 / 90 / 180 / 365 days        | +1 for ≤90 days     |
 
 **Score interpretation:**
+
 - **5/5** — 🟢 Full privacy (recommended for elections and sensitive surveys)
 - **3–4/5** — 🟡 Moderate privacy
 - **0–2/5** — 🔴 Low privacy
