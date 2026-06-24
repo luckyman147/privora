@@ -25,6 +25,23 @@ BEGIN
 END;
 $$;
 
+-- Backfill for users who signed up before migration (run once)
+-- INSERT INTO public.profiles (id, email, username, image_url, plan)
+-- SELECT id, email,
+--   COALESCE(
+--     NULLIF(raw_user_meta_data ->> 'preferred_username', ''),
+--     NULLIF(raw_user_meta_data ->> 'user_name', ''),
+--     NULLIF(raw_user_meta_data ->> 'username', ''),
+--     SPLIT_PART(email, '@', 1)
+--   ),
+--   COALESCE(
+--     NULLIF(raw_user_meta_data ->> 'avatar_url', ''),
+--     NULLIF(raw_user_meta_data ->> 'picture', '')
+--   ),
+--   'starter'
+-- FROM auth.users
+-- WHERE id NOT IN (SELECT id FROM public.profiles);
+
 -- Auto-create profile on signup
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER

@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { requireAuth, getSupabase } from '@/lib/supabase'
 import { Badge } from '@/components/ui/Badge'
 import { DashboardLoading } from './loading'
+import LogoutButton from './LogoutButton'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Dashboard' }
@@ -162,6 +163,7 @@ export default async function DashboardPage() {
               >
                 + Create form
               </Link>
+              <LogoutButton />
             </div>
           </div>
         </div>

@@ -205,7 +205,7 @@ export function AuthForm() {
           disabled={oauthLoading !== null}
         >
           <span className='flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-slate-200'>
-            <FcGoogle className='h-5 w-5' aria-hidden='true' />
+            <FcGoogle size={20} aria-hidden='true' />
           </span>
           {oauthLoading === 'google' ? 'Redirecting...' : 'Google'}
         </button>
@@ -216,7 +216,7 @@ export function AuthForm() {
           disabled={oauthLoading !== null}
         >
           <span className='flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-900 text-white shadow-sm ring-1 ring-slate-300'>
-            <FaGithub className='h-4 w-4' aria-hidden='true' />
+            <FaGithub size={16} color='white' aria-hidden='true' />
           </span>
           {oauthLoading === 'github' ? 'Redirecting...' : 'GitHub'}
         </button>

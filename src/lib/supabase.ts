@@ -23,16 +23,11 @@ export const getSupabase = cache(async () => {
   })
 })
 
-export async function getSession() {
-  const supabase = await getSupabase()
-  const { data: { session } } = await supabase.auth.getSession()
-  return session
-}
-
 export async function requireAuth() {
-  const session = await getSession()
-  if (!session) throw new Error('Unauthenticated')
-  return session.user
+  const supabase = await getSupabase()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthenticated')
+  return user
 }
 
 export async function getFormById(id: string) {
