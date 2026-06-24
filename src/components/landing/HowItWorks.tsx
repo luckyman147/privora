@@ -23,7 +23,7 @@ export function HowItWorks() {
           <p className='text-xs font-bold text-sky-600 uppercase tracking-widest mb-3'>
             How it works
           </p>
-          <h2 className='text-5xl font-800 text-slate-900 mb-4'>
+          <h2 className='text-5xl font-extrabold text-slate-900 mb-4'>
             Three steps to trust
           </h2>
           <p className='text-lg text-slate-600 max-w-md mx-auto'>

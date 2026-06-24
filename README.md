@@ -87,6 +87,10 @@ In your Supabase Dashboard → **Authentication → Providers**, enable:
 - Google
 - GitHub
 
+If you want magic links to go out through Gmail, configure **Authentication → SMTP** in Supabase with a Gmail address and a Google App Password. Do not use your normal Gmail password.
+
+Use the branded email template in [supabase/auth/magic-link-template.html](supabase/auth/magic-link-template.html) for the Supabase magic-link message. It uses `{{ .ConfirmationURL }}` and `{{ .SiteURL }}` so the same link and logo work in local and production environments.
+
 For Google/GitHub, you'll need OAuth app credentials from their developer consoles. Set the redirect URL to:
 
 ```

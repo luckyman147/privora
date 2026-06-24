@@ -5,32 +5,19 @@ import { signIn, signUp, sendMagicLink, signInWithProvider } from '@/app/auth/ac
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 
-type AuthMode = 'signin' | 'signup'
+type AuthMode = 'signin' | 'signup' | 'magic'
 
 export function AuthForm() {
   const [mode, setMode] = useState<AuthMode>('signin')
   const [error, setError] = useState('')
-  const [showMagicLink, setShowMagicLink] = useState(false)
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleAuthSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError('')
 
     const formData = new FormData(event.currentTarget)
-    const action = mode === 'signin' ? signIn : signUp
+    const action = mode === 'signup' ? signUp : mode === 'magic' ? sendMagicLink : signIn
     const result = await action(formData)
-
-    if (result?.error) {
-      setError(result.error)
-    }
-  }
-
-  async function handleMagicLink(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setError('')
-
-    const formData = new FormData(event.currentTarget)
-    const result = await sendMagicLink(formData)
 
     if (result?.error) {
       setError(result.error)
@@ -40,14 +27,14 @@ export function AuthForm() {
   return (
     <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm">
       <div className="mb-6">
-        <div className="inline-flex rounded-full bg-slate-100 p-1 text-sm font-semibold text-slate-600">
+        <div className="grid grid-cols-3 rounded-full bg-slate-100 p-1 text-sm font-semibold text-slate-600">
           <button
             type="button"
             onClick={() => {
               setMode('signin')
               setError('')
             }}
-            className={`rounded-full px-4 py-2 transition ${mode === 'signin' ? 'bg-white text-slate-900 shadow-sm' : ''}`}
+            className={`rounded-full px-3 py-2 transition ${mode === 'signin' ? 'bg-white text-slate-900 shadow-sm' : ''}`}
           >
             Sign in
           </button>
@@ -57,25 +44,37 @@ export function AuthForm() {
               setMode('signup')
               setError('')
             }}
-            className={`rounded-full px-4 py-2 transition ${mode === 'signup' ? 'bg-white text-slate-900 shadow-sm' : ''}`}
+            className={`rounded-full px-3 py-2 transition ${mode === 'signup' ? 'bg-white text-slate-900 shadow-sm' : ''}`}
           >
             Create account
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setMode('magic')
+              setError('')
+            }}
+            className={`rounded-full px-3 py-2 transition ${mode === 'magic' ? 'bg-white text-slate-900 shadow-sm' : ''}`}
+          >
+            Magic link
           </button>
         </div>
       </div>
 
       <div className="mb-8">
         <h1 className="text-2xl font-800 text-slate-900 mb-2">
-          {mode === 'signin' ? 'Welcome back' : 'Create your account'}
+          {mode === 'signin' ? 'Welcome back' : mode === 'signup' ? 'Create your account' : 'Send a magic link'}
         </h1>
         <p className="text-sm text-slate-600">
           {mode === 'signin'
             ? 'Sign in to manage your forms and responses'
-            : 'Start building privacy-forward forms in minutes'}
+            : mode === 'signup'
+              ? 'Start building privacy-forward forms in minutes'
+              : 'Get a one-time sign-in link by email'}
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleAuthSubmit} className="space-y-5">
         {mode === 'signup' && (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Input name="first_name" label="First name" placeholder="First name" required />
@@ -94,27 +93,22 @@ export function AuthForm() {
           required
         />
 
-        <div className="flex items-center justify-between gap-4">
-          <label htmlFor="password" className="block text-sm font-semibold text-slate-900">
-            Password
-          </label>
-          {mode === 'signin' ? (
-            <button
-              type="button"
-              onClick={() => setShowMagicLink((value) => !value)}
-              className="text-xs font-medium text-sky-600 hover:text-sky-700"
-            >
-              Forgot?
-            </button>
-          ) : null}
-        </div>
-        <Input
-          id="password"
-          name="password"
-          type="password"
-          placeholder={mode === 'signin' ? '••••••••' : 'Minimum 8 characters'}
-          required
-        />
+        {mode !== 'magic' && (
+          <>
+            <div className="flex items-center justify-between gap-4">
+              <label htmlFor="password" className="block text-sm font-semibold text-slate-900">
+                Password
+              </label>
+            </div>
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              placeholder={mode === 'signin' ? '••••••••' : 'Minimum 8 characters'}
+              required
+            />
+          </>
+        )}
 
         {mode === 'signin' && (
           <div className="flex items-center">
@@ -133,23 +127,9 @@ export function AuthForm() {
         {error ? <p className="text-sm text-red-500">{error}</p> : null}
 
         <Button type="submit" size="lg" className="w-full bg-sky-500 text-white hover:bg-sky-600">
-          {mode === 'signin' ? 'Sign in →' : 'Create account →'}
+          {mode === 'signin' ? 'Sign in →' : mode === 'signup' ? 'Create account →' : 'Send magic link →'}
         </Button>
       </form>
-
-      {mode === 'signin' && showMagicLink ? (
-        <form onSubmit={handleMagicLink} className="mt-5 space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-          <Input
-            name="email"
-            type="email"
-            placeholder="Email for a magic link"
-            required
-          />
-          <Button type="submit" variant="secondary" size="md" className="w-full">
-            Send magic link
-          </Button>
-        </form>
-      ) : null}
 
       <div className="relative my-6">
         <div className="absolute inset-0 flex items-center">
@@ -187,17 +167,20 @@ export function AuthForm() {
       </div>
 
       <p className="text-center text-sm text-slate-600 mt-6">
-        {mode === 'signin' ? "Don't have an account?" : 'Already have an account?'}{' '}
+        {mode === 'signin'
+          ? "Don't have an account?"
+          : mode === 'signup'
+            ? 'Already have an account?'
+            : 'Need a password instead?'}{' '}
         <button
           type="button"
           onClick={() => {
             setMode(mode === 'signin' ? 'signup' : 'signin')
             setError('')
-            setShowMagicLink(false)
           }}
           className="font-semibold text-sky-600 hover:text-sky-700"
         >
-          {mode === 'signin' ? 'Sign up free' : 'Sign in'}
+          {mode === 'magic' ? 'Back to sign in' : mode === 'signin' ? 'Sign up free' : 'Sign in'}
         </button>
       </p>
     </div>

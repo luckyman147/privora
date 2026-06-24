@@ -17,10 +17,10 @@ export default function Hero() {
             </div>
 
             {/* Headline */}
-            <h1 className='text-6xl font-800 text-slate-900 leading-tight mb-6'>
+            <h1 className='text-6xl font-900 text-slate-900 leading-tight mb-6'>
               Forms people
               <br />
-              <span className='text-sky-500'>actually trust.</span>
+              <span className='text-sky-500 font-extrabold'>actually trust.</span>
             </h1>
 
             {/* Subheading */}
