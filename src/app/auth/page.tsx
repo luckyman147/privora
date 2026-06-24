@@ -33,7 +33,7 @@ export default function AuthPage() {
             </div>
           </div>
           <p className="text-slate-500 text-xs mt-6 italic">
-            "We ran our first anonymous election in 15 minutes." — Student association, Tunis
+            &ldquo;We ran our first anonymous election in 15 minutes.&rdquo; &mdash; Student association, Tunis
           </p>
         </div>
       </div>
