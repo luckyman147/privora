@@ -1,9 +1,11 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
-import { Footer } from '@/components/Footer'
-import { Hero } from '@/components/Hero'
-import { HowItWorks } from '@/components/HowItWorks'
+
+import { HowItWorks } from '@/components/landing/HowItWorks'
 import UseCases from '@/components/landing/UseCases'
+import Hero from '@/components/landing/Hero'
+import Footer from '@/components/landing/Footer'
 
 export default function LandingPage() {
   return (
@@ -12,7 +14,7 @@ export default function LandingPage() {
       <nav className='sticky top-0 z-50 bg-white/96 backdrop-blur border-b border-slate-200 h-16 flex items-center px-12'>
         <div className='max-w-7xl w-full mx-auto flex items-center justify-between'>
           <Link href='/' className='flex items-center gap-2'>
-            <div className='w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-emerald-600' />
+            <Image src='/images/logo.png' alt='Privora' width={32} height={32} className='h-8 w-auto' />
             <span className='font-bold text-lg'>Privora</span>
           </Link>
 
