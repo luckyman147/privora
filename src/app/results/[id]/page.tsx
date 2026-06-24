@@ -1,4 +1,4 @@
-import { requireAuth, createServerSupabaseClient } from '@/lib/supabase'
+import { requireAuth, getSupabase } from '@/lib/supabase'
 import { Badge } from '@/components/ui/Badge'
 import { formatDate } from '@/lib/utils'
 import { redirect } from 'next/navigation'
@@ -22,7 +22,7 @@ export default async function ResultsPage({
 }) {
   const { id } = await params
   const user = await requireAuth().catch(() => redirect('/auth'))
-  const supabase = await createServerSupabaseClient()
+  const supabase = await getSupabase()
 
   const { data: rawForm } = await (supabase as any)
     .from('forms').select('*')

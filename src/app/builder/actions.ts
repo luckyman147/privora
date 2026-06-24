@@ -1,11 +1,11 @@
 'use server'
 import { revalidatePath } from 'next/cache'
-import { requireAuth, createServerSupabaseClient } from '@/lib/supabase'
+import { requireAuth, getSupabase } from '@/lib/supabase'
 import type { Form } from '@/lib/types'
 
 export async function saveForm(form: Form) {
   const user = await requireAuth()
-  const supabase = await createServerSupabaseClient()
+  const supabase = await getSupabase()
   const { error } = await (supabase as any).from('forms').update({
     title:        form.title,
     mode:         form.mode,
@@ -19,7 +19,7 @@ export async function saveForm(form: Form) {
 
 export async function publishForm(formId: string) {
   const user = await requireAuth()
-  const supabase = await createServerSupabaseClient()
+  const supabase = await getSupabase()
   const { error } = await (supabase as any).from('forms')
     .update({ status: 'active', updated_at: new Date().toISOString() })
     .eq('id', formId).eq('owner_id', user.id)

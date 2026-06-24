@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { requireAuth, createServerSupabaseClient } from '@/lib/supabase'
+import { requireAuth, getSupabase } from '@/lib/supabase'
 import { Badge } from '@/components/ui/Badge'
 import { DashboardLoading } from './loading'
 import type { Metadata } from 'next'
@@ -18,7 +18,7 @@ interface CountRow {
 }
 
 async function FormsList({ userId }: { userId: string }) {
-  const supabase = await createServerSupabaseClient()
+  const supabase = await getSupabase()
   const { data: rawForms } = await supabase
     .from('forms')
     .select('id,title,mode,status,updated_at')

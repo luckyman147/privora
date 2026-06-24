@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth, createServerSupabaseClient } from '@/lib/supabase'
+import { requireAuth, getSupabase } from '@/lib/supabase'
 import { responsesToCSV } from '@/lib/utils'
 import type { Form } from '@/lib/types'
 
@@ -9,7 +9,7 @@ export async function GET(
 ) {
   const { id } = await params
   const user     = await requireAuth()
-  const supabase = await createServerSupabaseClient()
+  const supabase = await getSupabase()
 
   const { data: raw } = await (supabase as any)
     .from('forms').select('*')

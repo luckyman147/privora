@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase'
+import { getSupabase } from '@/lib/supabase'
 import { hashToken } from '@/lib/utils'
 import type { Form } from '@/lib/types'
 
@@ -9,7 +9,7 @@ export async function POST(
 ) {
   try {
     const { id: formId } = await params
-    const supabase = await createServerSupabaseClient()
+    const supabase = await getSupabase()
     const { data: raw } = await (supabase as any)
       .from('forms')
       .select('*')

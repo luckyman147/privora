@@ -1,6 +1,6 @@
 'use server'
 import { redirect } from 'next/navigation'
-import { createServerSupabaseClient } from '@/lib/supabase'
+import { getSupabase } from '@/lib/supabase'
 import { signInSchema, signUpSchema, magicLinkSchema } from './schema'
 
 export async function signIn(formData: FormData) {
@@ -11,7 +11,7 @@ export async function signIn(formData: FormData) {
   if (!parsed.success) {
     return { error: parsed.error.errors[0].message }
   }
-  const supabase = await createServerSupabaseClient()
+  const supabase = await getSupabase()
   const { error } = await supabase.auth.signInWithPassword(parsed.data)
   if (error) return { error: error.message }
   redirect('/dashboard')
@@ -26,7 +26,7 @@ export async function signUp(formData: FormData) {
     password:   formData.get('password'),
   })
   if (!parsed.success) return { error: parsed.error.errors[0].message }
-  const supabase = await createServerSupabaseClient()
+  const supabase = await getSupabase()
   const { error } = await supabase.auth.signUp({
     email: parsed.data.email,
     password: parsed.data.password,
@@ -45,7 +45,7 @@ export async function signUp(formData: FormData) {
 export async function sendMagicLink(formData: FormData) {
   const parsed = magicLinkSchema.safeParse({ email: formData.get('email') })
   if (!parsed.success) return { error: parsed.error.errors[0].message }
-  const supabase = await createServerSupabaseClient()
+  const supabase = await getSupabase()
   const { error } = await supabase.auth.signInWithOtp({
     email: parsed.data.email,
     options: { emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback` },
@@ -55,13 +55,13 @@ export async function sendMagicLink(formData: FormData) {
 }
 
 export async function signOut() {
-  const supabase = await createServerSupabaseClient()
+  const supabase = await getSupabase()
   await supabase.auth.signOut()
   redirect('/')
 }
 
 export async function signInWithProvider(provider: 'google' | 'github') {
-  const supabase = await createServerSupabaseClient()
+  const supabase = await getSupabase()
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: { redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback` },
