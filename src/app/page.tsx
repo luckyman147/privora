@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/Button'
 import { Footer } from '@/components/Footer'
 import { Hero } from '@/components/Hero'
 import { HowItWorks } from '@/components/HowItWorks'
-import { UseCases } from '@/components/UseCases'
+import UseCases from '@/components/landing/UseCases'
 
 export default function LandingPage() {
   return (
