@@ -22,7 +22,9 @@ interface CountRow {
 }
 
 interface ProfileRow {
-  org_name: string
+  email:     string
+  username:  string | null
+  image_url: string | null
 }
 
 async function FormsList({ userId }: { userId: string }) {
@@ -96,7 +98,7 @@ export default async function DashboardPage() {
   const supabase = await getSupabase()
   const { data: profile } = await supabase
     .from('profiles')
-    .select('org_name')
+    .select('email, username, image_url')
     .eq('id', user.id)
     .maybeSingle()
 
@@ -104,11 +106,14 @@ export default async function DashboardPage() {
   const displayName =
     metadata.full_name ??
     metadata.name ??
-    metadata.user_name ??
-    (profile as ProfileRow | null | undefined)?.org_name ??
+    (profile as ProfileRow | null | undefined)?.username ??
     user.email ??
     'Account'
-  const avatarUrl = metadata.avatar_url ?? metadata.picture ?? ''
+  const avatarUrl =
+    (profile as ProfileRow | null | undefined)?.image_url ??
+    metadata.avatar_url ??
+    metadata.picture ??
+    ''
 
   return (
     <div className='flex h-screen bg-slate-50 overflow-hidden'>
@@ -144,11 +149,11 @@ export default async function DashboardPage() {
             <div className='flex items-center gap-3'>
               <div className='rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm'>
                 <p className='text-xs font-semibold uppercase tracking-[0.16em] text-slate-400'>
-                  Organization
+                  Username
                 </p>
                 <p className='font-semibold text-slate-900'>
-                  {(profile as ProfileRow | null | undefined)?.org_name ??
-                    'My Organization'}
+                  {(profile as ProfileRow | null | undefined)?.username ??
+                    '—'}
                 </p>
               </div>
               <Link

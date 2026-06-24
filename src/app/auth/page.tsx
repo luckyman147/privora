@@ -96,8 +96,8 @@ function AuthContent() {
                   />
                   <div className='col-span-2'>
                     <input
-                      name='org_name'
-                      placeholder='Organization name'
+                      name='username'
+                      placeholder='Username'
                       required
                       className='w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-sky-400'
                     />

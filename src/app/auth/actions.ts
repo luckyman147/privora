@@ -22,7 +22,7 @@ export async function signUp(formData: FormData) {
     first_name: formData.get('first_name'),
     last_name: formData.get('last_name'),
     email: formData.get('email'),
-    org_name: formData.get('org_name'),
+    username: formData.get('username'),
     password: formData.get('password'),
   })
   if (!parsed.success) return { error: parsed.error.errors[0].message }
@@ -34,7 +34,7 @@ export async function signUp(formData: FormData) {
       data: {
         first_name: parsed.data.first_name,
         last_name: parsed.data.last_name,
-        org_name: parsed.data.org_name,
+        username: parsed.data.username,
       },
     },
   })

@@ -5,7 +5,9 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 --------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS profiles (
   id         UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  org_name   TEXT NOT NULL,
+  email      TEXT NOT NULL,
+  username   TEXT,
+  image_url  TEXT,
   plan       TEXT NOT NULL DEFAULT 'starter' CHECK (plan IN ('starter', 'club', 'institution')),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -30,14 +32,19 @@ LANGUAGE plpgsql
 SECURITY DEFINER SET search_path = ''
 AS $$
 BEGIN
-  INSERT INTO public.profiles (id, org_name, plan)
+  INSERT INTO public.profiles (id, email, username, image_url, plan)
   VALUES (
     NEW.id,
+    NEW.email,
     COALESCE(
-      NULLIF(NEW.raw_user_meta_data ->> 'org_name', ''),
-      NULLIF(NEW.raw_user_meta_data ->> 'full_name', ''),
-      SPLIT_PART(COALESCE(NEW.raw_user_meta_data ->> 'name', ''), ' ', 1),
-      'My Organization'
+      NULLIF(NEW.raw_user_meta_data ->> 'preferred_username', ''),
+      NULLIF(NEW.raw_user_meta_data ->> 'user_name', ''),
+      NULLIF(NEW.raw_user_meta_data ->> 'username', ''),
+      SPLIT_PART(NEW.email, '@', 1)
+    ),
+    COALESCE(
+      NULLIF(NEW.raw_user_meta_data ->> 'avatar_url', ''),
+      NULLIF(NEW.raw_user_meta_data ->> 'picture', '')
     ),
     'starter'
   );

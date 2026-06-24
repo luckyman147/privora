@@ -9,7 +9,7 @@ export const signUpSchema = z.object({
   first_name: z.string().min(1, 'Required'),
   last_name:  z.string().min(1, 'Required'),
   email:      z.string().email('Valid email required'),
-  org_name:   z.string().min(2, 'Organization name required'),
+  username:   z.string().min(2, 'Username required'),
   password:   z.string().min(8, 'Min 8 characters'),
 })
 

@@ -15,7 +15,9 @@ export interface Database {
 
 export interface Profile {
   id:         string
-  org_name:   string
+  email:      string
+  username:   string | null
+  image_url:  string | null
   plan:       'starter' | 'club' | 'institution'
   created_at: string
 }
