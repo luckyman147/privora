@@ -2,9 +2,9 @@ name: Privora CI + Security + Deploy
 
 on:
   push:
-    branches: [main]
+    branches: [master]
   pull_request:
-    branches: [main]
+    branches: [master]
 
 jobs:
   lint:
@@ -78,7 +78,7 @@ jobs:
 
   db-migrate:
     needs: db-validate
-    if: github.ref == 'refs/heads/main' && success()
+    if: github.ref == 'refs/heads/master' && success()
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -94,7 +94,7 @@ jobs:
 
   build-and-deploy:
     needs: [lint, typecheck, test, security-audit, snyk-scan, codeql-analysis, db-migrate]
-    if: github.ref == 'refs/heads/main' && success()
+    if: github.ref == 'refs/heads/master' && success()
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
