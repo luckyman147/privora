@@ -11,7 +11,9 @@ type AuthMode = 'signin' | 'signup' | 'magic'
 export function AuthForm() {
   const [mode, setMode] = useState<AuthMode>('signin')
   const [error, setError] = useState('')
-  const [oauthLoading, setOauthLoading] = useState<null | 'google' | 'github'>(null)
+  const [oauthLoading, setOauthLoading] = useState<null | 'google' | 'github'>(
+    null,
+  )
 
   async function handleAuthSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()

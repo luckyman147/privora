@@ -30,7 +30,7 @@ LANGUAGE plpgsql
 SECURITY DEFINER SET search_path = ''
 AS $$
 BEGIN
-  INSERT INTO profiles (id, org_name, plan)
+  INSERT INTO public.profiles (id, org_name, plan)
   VALUES (
     NEW.id,
     COALESCE(
@@ -41,6 +41,8 @@ BEGIN
     ),
     'starter'
   );
+  RETURN NEW;
+EXCEPTION WHEN undefined_table THEN
   RETURN NEW;
 END;
 $$;
