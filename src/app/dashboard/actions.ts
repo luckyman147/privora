@@ -7,7 +7,7 @@ import type { Form } from '@/lib/types'
 
 export async function createForm(mode: 'survey' | 'election' = 'survey') {
   const user = await requireAuth()
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data, error } = await (supabase as any).from('forms').insert({
     owner_id:     user.id,
     title:        'Untitled form',
@@ -22,7 +22,7 @@ export async function createForm(mode: 'survey' | 'election' = 'survey') {
 
 export async function deleteForm(formId: string) {
   const user = await requireAuth()
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   await (supabase as any).from('forms')
     .delete()
     .eq('id', formId)
@@ -32,7 +32,7 @@ export async function deleteForm(formId: string) {
 
 export async function duplicateForm(formId: string) {
   const user = await requireAuth()
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: raw } = await (supabase as any)
     .from('forms').select('*').eq('id', formId).single()
   const original = raw as Form | null

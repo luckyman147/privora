@@ -5,11 +5,11 @@ import type { Form } from '@/lib/types'
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const formId = params.id
-    const supabase = createServerSupabaseClient()
+    const { id: formId } = await params
+    const supabase = await createServerSupabaseClient()
     const { data: raw } = await (supabase as any)
       .from('forms')
       .select('*')

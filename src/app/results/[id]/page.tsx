@@ -18,21 +18,22 @@ export const dynamic = 'force-dynamic'
 export default async function ResultsPage({
   params,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
+  const { id } = await params
   const user = await requireAuth().catch(() => redirect('/auth'))
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
 
   const { data: rawForm } = await (supabase as any)
     .from('forms').select('*')
-    .eq('id', params.id).eq('owner_id', user.id).single()
+    .eq('id', id).eq('owner_id', user.id).single()
   const form = rawForm as unknown as FormRow | null
 
   if (!form) return redirect('/dashboard')
 
   const { data: rawResponses } = await (supabase as any)
     .from('responses').select('*')
-    .eq('form_id', params.id)
+    .eq('form_id', id)
     .order('submitted_at', { ascending: false })
   const responses = (rawResponses ?? []) as Response[]
 

@@ -18,7 +18,7 @@ interface CountRow {
 }
 
 async function FormsList({ userId }: { userId: string }) {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: rawForms } = await supabase
     .from('forms')
     .select('id,title,mode,status,updated_at')

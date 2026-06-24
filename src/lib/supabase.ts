@@ -5,8 +5,8 @@ import type { Database, Form, Response } from './types'
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
 
-export function createServerSupabaseClient() {
-  const cookieStore = cookies()
+export async function createServerSupabaseClient() {
+  const cookieStore = await cookies()
   return createServerClient<Database>(SUPABASE_URL, SUPABASE_KEY, {
     cookies: {
       get(name: string) {
@@ -23,7 +23,7 @@ export function createServerSupabaseClient() {
 }
 
 export async function getSession() {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { session } } = await supabase.auth.getSession()
   return session
 }
@@ -35,7 +35,7 @@ export async function requireAuth() {
 }
 
 export async function getFormById(id: string) {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data, error } = await (supabase as any)
     .from('forms').select('*').eq('id', id).single()
   if (error) throw error
@@ -43,7 +43,7 @@ export async function getFormById(id: string) {
 }
 
 export async function getFormResponses(formId: string, page = 1, limit = 20) {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const from = (page - 1) * limit
   const { data, count, error } = await (supabase as any)
     .from('responses').select('*', { count: 'exact' })

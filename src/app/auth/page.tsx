@@ -1,114 +1,75 @@
-'use client'
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { signIn, signUp, sendMagicLink, signInWithProvider } from './actions'
+import Link from 'next/link'
+import { AuthForm } from '@/components/auth/AuthForm'
 
-export default function AuthPage() {
-  const [tab, setTab] = useState<'signin' | 'signup'>('signin')
-  const [error, setError] = useState('')
-  const router = useRouter()
-
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    setError('')
-    const form = new FormData(e.currentTarget)
-    const fn = tab === 'signin' ? signIn : signUp
-    const result = await fn(form)
-    if (result?.error) setError(result.error)
-  }
-
+export default function SignPage() {
   return (
-    <div className="min-h-screen flex">
-      <div className="hidden lg:flex w-1/2 bg-slate-950 items-center justify-center p-12">
-        <div className="max-w-sm text-center">
-          <div className="text-3xl font-bold text-white mb-2">Privora</div>
-          <p className="text-slate-400 text-sm mb-8">Trust by design.</p>
-          <div className="bg-slate-900 rounded-2xl p-6 border border-slate-800 text-left">
-            <div className="text-emerald-400 text-sm font-semibold mb-3">Trust Score — Survey Mode</div>
-            <div className="space-y-2 text-xs text-slate-300">
-              <div>👤 Nobody — responses are anonymous</div>
-              <div>📍 IP not stored</div>
-              <div>🔄 1 submission per browser session</div>
-              <div>📅 Data deleted after 90 days</div>
-            </div>
-          </div>
-          <p className="text-slate-500 text-xs mt-6 italic">
-            &ldquo;We ran our first anonymous election in 15 minutes.&rdquo; &mdash; Student association, Tunis
+    <div className="min-h-screen flex bg-slate-50">
+      <div className="flex-1 flex flex-col items-center justify-center px-8 py-12">
+        <div className="w-full max-w-md">
+          <Link href="/" className="flex items-center gap-2 mb-12">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-emerald-600" />
+            <span className="font-bold text-lg text-slate-900">Privora</span>
+          </Link>
+
+          <AuthForm />
+
+          <p className="text-xs text-slate-500 text-center mt-6 max-w-sm">
+            By signing in, you agree to our{' '}
+            <Link href="/privacy" className="underline hover:text-slate-700">
+              Privacy Policy
+            </Link>{' '}
+            and{' '}
+            <Link href="/terms" className="underline hover:text-slate-700">
+              Terms of Service
+            </Link>
           </p>
         </div>
       </div>
 
-      <div className="flex-1 flex items-center justify-center p-8">
-        <div className="w-full max-w-sm">
-          <div className="flex mb-8 bg-slate-100 rounded-lg p-1">
-            <button onClick={() => setTab('signin')}
-              className={`flex-1 py-2 text-sm font-semibold rounded-md transition ${tab === 'signin' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500'}`}>
-              Sign in
-            </button>
-            <button onClick={() => setTab('signup')}
-              className={`flex-1 py-2 text-sm font-semibold rounded-md transition ${tab === 'signup' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500'}`}>
-              Create account
-            </button>
+      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-slate-900 via-sky-900 to-emerald-900 items-center justify-center px-12 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl" />
+
+        <div className="relative z-10 max-w-sm text-white">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/10 backdrop-blur border border-white/20 mb-6">
+            <svg className="w-8 h-8 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
+            </svg>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {tab === 'signup' && (
-              <>
-                <div className="flex gap-3">
-                  <input name="first_name" placeholder="First name" required
-                    className="flex-1 px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-sky-400" />
-                  <input name="last_name" placeholder="Last name" required
-                    className="flex-1 px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-sky-400" />
-                </div>
-                <input name="org_name" placeholder="Organization name" required
-                  className="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-sky-400" />
-              </>
-            )}
-            <input name="email" type="email" placeholder="Email" required
-              className="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-sky-400" />
-            <input name="password" type="password" placeholder="Password (min 8 chars)" required
-              className="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-sky-400" />
-            {error && <p className="text-xs text-red-500">{error}</p>}
-            <button type="submit"
-              className="w-full py-2.5 text-sm font-bold text-white bg-sky-500 rounded-xl hover:bg-sky-600">
-              {tab === 'signin' ? 'Sign in' : 'Create account'}
-            </button>
-          </form>
-
-          <div className="my-6 flex items-center gap-3 text-xs text-slate-400">
-            <div className="flex-1 h-px bg-slate-200" /> or <div className="flex-1 h-px bg-slate-200" />
-          </div>
-
-          <div className="space-y-2">
-            <form onSubmit={async (e) => {
-              e.preventDefault()
-              const form = new FormData(e.currentTarget)
-              setError('')
-              const result = await sendMagicLink(form)
-              if (result?.error) setError(result.error)
-            }}>
-              <input name="email" type="email" placeholder="Email for magic link"
-                className="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl mb-2 focus:outline-none focus:border-sky-400" />
-              <button type="submit"
-                className="w-full py-2.5 text-sm font-semibold text-slate-600 border border-slate-200 rounded-xl hover:bg-slate-50">
-                Send magic link
-              </button>
-            </form>
-            <div className="flex gap-2">
-              <button onClick={() => signInWithProvider('google')}
-                className="flex-1 py-2.5 text-sm font-semibold text-slate-600 border border-slate-200 rounded-xl hover:bg-slate-50">
-                Google
-              </button>
-              <button onClick={() => signInWithProvider('github')}
-                className="flex-1 py-2.5 text-sm font-semibold text-slate-600 border border-slate-200 rounded-xl hover:bg-slate-50">
-                GitHub
-              </button>
-            </div>
-          </div>
-
-          <p className="text-xs text-slate-400 text-center mt-8">
-            By signing up you agree to our Privacy Policy.
+          <h2 className="text-4xl font-800 mb-6 leading-tight">
+            Privacy people can see
+          </h2>
+          <p className="text-lg text-slate-300 mb-8 leading-relaxed">
+            Every form includes a Trust Score — a clear privacy contract between you and respondents. No surprises. No hidden settings.
           </p>
+
+          <ul className="space-y-4">
+            {[
+              'Transparent data handling',
+              'Anonymous response options',
+              'FERPA-compliant defaults',
+              'Audit-ready results',
+            ].map((feature) => (
+              <li key={feature} className="flex items-center gap-3 text-sm">
+                <div className="w-5 h-5 rounded-full bg-emerald-500/20 border border-emerald-500/50 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-3 h-3 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <span>{feature}</span>
+              </li>
+            ))}
+          </ul>
+
+          <div className="mt-10 pt-8 border-t border-slate-700/50">
+            <p className="italic text-slate-400 mb-3 text-sm">
+              &ldquo;Privora changed how we run surveys. Our response rate went up 34% when students saw our privacy commitment.&rdquo;
+            </p>
+            <p className="text-xs font-600 text-slate-300">
+              Alex Chen, MIT Student Government
+            </p>
+          </div>
         </div>
       </div>
     </div>
