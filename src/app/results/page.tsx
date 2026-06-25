@@ -38,7 +38,6 @@ export default async function ResultsPage() {
     <div className="max-w-6xl mx-auto p-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <Link href="/dashboard" className="text-sm text-slate-400 hover:text-slate-600 mb-2 block">← Dashboard</Link>
             <h1 className="text-2xl font-extrabold text-slate-900">Results</h1>
             <p className="text-sm text-slate-500 mt-1">Response data for all your forms</p>
           </div>

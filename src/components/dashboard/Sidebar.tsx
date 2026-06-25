@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { usePathname } from 'next/navigation'
 import { logout } from '@/app/dashboard/actions'
 
 interface Props {
@@ -30,6 +31,16 @@ const NAV_ITEMS = [
 
 export function Sidebar({ displayName, avatarUrl, planLabel, formCount }: Props) {
   const [open, setOpen] = useState(true)
+  const pathname = usePathname()
+  const isForms = pathname.startsWith('/dashboard')
+  const isResults = pathname.startsWith('/results')
+
+  function itemClass(active: boolean) {
+    const base = 'flex items-center gap-3 rounded-lg text-sm transition'
+    const size = open ? 'px-3 py-2.5' : 'p-3 justify-center'
+    if (active) return `${base} ${size} bg-sky-50 text-sky-700`
+    return `${base} ${size} text-slate-600 hover:bg-slate-50`
+  }
 
   return (
     <aside
@@ -63,14 +74,13 @@ export function Sidebar({ displayName, avatarUrl, planLabel, formCount }: Props)
       {/* Nav */}
       <nav className="flex-1 p-2 space-y-0.5 overflow-hidden">
 
-        {/* Forms – always active */}
-        <div
+        {/* Forms */}
+        <Link
+          href="/dashboard"
           title={!open ? 'Forms' : undefined}
-          className={`flex items-center gap-3 rounded-lg text-sm bg-sky-50 text-sky-700 ${
-            open ? 'px-3 py-2.5' : 'p-3 justify-center'
-          }`}
+          className={itemClass(isForms)}
         >
-          <svg className="w-4 h-4 text-sky-500 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+          <svg className={`w-4 h-4 shrink-0 ${isForms ? 'text-sky-500' : 'text-slate-400'}`} viewBox="0 0 20 20" fill="currentColor">
             <path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm0 2h12v10H4V5zm2 2v2h8V7H6zm0 4v2h5v-2H6z" />
           </svg>
           {open && (
@@ -81,18 +91,16 @@ export function Sidebar({ displayName, avatarUrl, planLabel, formCount }: Props)
               </span>
             </>
           )}
-        </div>
+        </Link>
 
         {NAV_ITEMS.map(item => (
           <Link
             key={item.label}
             href={item.href}
             title={!open ? item.label : undefined}
-            className={`flex items-center gap-3 rounded-lg text-sm text-slate-600 hover:bg-slate-50 transition ${
-              open ? 'px-3 py-2.5' : 'p-3 justify-center'
-            }`}
+            className={itemClass(isResults)}
           >
-            <span className="text-slate-400">{item.icon}</span>
+            <span className={isResults ? 'text-sky-500' : 'text-slate-400'}>{item.icon}</span>
             {open && <span className="font-medium">{item.label}</span>}
           </Link>
         ))}
