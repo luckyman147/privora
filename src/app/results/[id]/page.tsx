@@ -42,7 +42,7 @@ export default async function ResultsPage({
       <div className="max-w-6xl mx-auto p-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <Link href="/dashboard" className="text-sm text-slate-400 hover:text-slate-600 mb-2 block">← My Forms</Link>
+            <Link href="/results" className="text-sm text-slate-400 hover:text-slate-600 mb-2 block">← All Results</Link>
             <h1 className="text-2xl font-extrabold text-slate-900">{form.title}</h1>
             <div className="flex items-center gap-3 mt-2">
               <Badge variant={form.mode} />

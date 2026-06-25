@@ -10,21 +10,36 @@ export async function POST(
   try {
     const { id: formId } = await params
     const supabase = await getSupabase()
-    const { data: raw } = await (supabase as any)
+    const { data: formData } = await (supabase as any)
       .from('forms')
       .select('*')
       .eq('id', formId)
       .single()
 
-    const form = raw as Form | null
+    const form = formData as Form | null
     if (!form || form.status !== 'active') {
       return NextResponse.json({ error: 'Form not available' }, { status: 404 })
     }
 
     const body = await req.json()
-    const { answers, submission_token } = body
+    if (!body || typeof body !== 'object' || Buffer.byteLength(JSON.stringify(body)) > 512_000) {
+      return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
+    }
+    const { answers, submission_token } = body as { answers: Record<string, unknown>; submission_token?: string }
+    if (!answers || typeof answers !== 'object' || Array.isArray(answers)) {
+      return NextResponse.json({ error: 'Invalid answers' }, { status: 400 })
+    }
+    const validIds = new Set(form.questions.map((q: any) => q.id))
+    for (const key of Object.keys(answers)) {
+      if (!validIds.has(key)) {
+        return NextResponse.json({ error: 'Invalid answer key' }, { status: 400 })
+      }
+    }
 
-    if (form.trust_config.submission_limit === 'one' && submission_token) {
+    if (form.trust_config.submission_limit === 'one') {
+      if (!submission_token) {
+        return NextResponse.json({ error: 'Submission token required' }, { status: 400 })
+      }
       const tokenHash = await hashToken(form.id, submission_token)
       const { data: existing } = await (supabase as any)
         .from('submission_tokens')
@@ -52,7 +67,8 @@ export async function POST(
     })
 
     return NextResponse.json({ success: true })
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 })
+  } catch (err) {
+    console.error('[submit]', err)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

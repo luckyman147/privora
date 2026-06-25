@@ -1,206 +1,77 @@
-import { Suspense } from 'react'
-import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { requireAuth, getSupabase } from '@/lib/supabase'
-import { Badge } from '@/components/ui/Badge'
-import { DashboardLoading } from './loading'
-import LogoutButton from './LogoutButton'
+import { calcTrustScore } from '@/lib/types'
+import { createForm } from './actions'
+import { Sidebar } from '@/components/dashboard/Sidebar'
+import { StatsBar } from '@/components/dashboard/StatsBar'
+import { FormsList } from '@/components/dashboard/FormsList'
 import type { Metadata } from 'next'
+import type { TrustConfig } from '@/lib/types'
 
-export const metadata: Metadata = { title: 'Dashboard' }
+export const metadata: Metadata = { title: 'Dashboard – Privora' }
 export const dynamic = 'force-dynamic'
-
-interface FormRow {
-  id: string
-  title: string
-  mode: string
-  status: string
-  updated_at: string
-}
-
-interface CountRow {
-  form_id: string
-}
-
-interface ProfileRow {
-  email:     string
-  username:  string | null
-  image_url: string | null
-}
-
-async function FormsList({ userId }: { userId: string }) {
-  const supabase = await getSupabase()
-  const { data: rawForms } = await supabase
-    .from('forms')
-    .select('id,title,mode,status,updated_at')
-    .eq('owner_id', userId)
-    .order('updated_at', { ascending: false })
-
-  const forms = (rawForms ?? []) as unknown as FormRow[]
-
-  const { data: rawCounts } = await supabase.from('responses').select('form_id')
-
-  const counts = (rawCounts ?? []) as unknown as CountRow[]
-
-  const countMap = counts.reduce(
-    (acc, r) => {
-      acc[r.form_id] = (acc[r.form_id] ?? 0) + 1
-      return acc
-    },
-    {} as Record<string, number>,
-  )
-
-  if (!forms.length) {
-    return (
-      <div className='flex flex-col items-center justify-center py-24 text-center'>
-        <div className='w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mb-5 text-2xl'>
-          📝
-        </div>
-        <h3 className='font-bold text-slate-900 mb-2'>No forms yet</h3>
-        <p className='text-sm text-slate-500 mb-6'>
-          Create your first form to start collecting trusted responses.
-        </p>
-        <Link
-          href='/builder'
-          className='px-5 py-2 text-sm font-semibold text-white bg-sky-500 rounded-lg'
-        >
-          Create form
-        </Link>
-      </div>
-    )
-  }
-
-  return (
-    <div className='space-y-2'>
-      {forms.map((form) => (
-        <Link
-          key={form.id}
-          href={`/builder/${form.id}`}
-          className='flex items-center gap-4 bg-white border border-slate-200 rounded-2xl p-4 hover:border-slate-300 hover:shadow-sm transition-all'
-        >
-          <div className='flex-1 min-w-0'>
-            <div className='font-semibold text-slate-900 truncate mb-1'>
-              {form.title}
-            </div>
-            <div className='flex items-center gap-2 text-xs text-slate-400'>
-              <Badge variant={form.mode} />
-              <span>{countMap[form.id] ?? 0} responses</span>
-            </div>
-          </div>
-          <Badge variant={form.status} />
-        </Link>
-      ))}
-    </div>
-  )
-}
 
 export default async function DashboardPage() {
   const user = await requireAuth().catch(() => redirect('/auth'))
   const supabase = await getSupabase()
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('email, username, image_url')
-    .eq('id', user.id)
-    .maybeSingle()
 
-  const metadata = user.user_metadata ?? {}
-  const displayName =
-    metadata.full_name ??
-    metadata.name ??
-    (profile as ProfileRow | null | undefined)?.username ??
-    user.email ??
-    'Account'
-  const avatarUrl =
-    (profile as ProfileRow | null | undefined)?.image_url ??
-    metadata.avatar_url ??
-    metadata.picture ??
-    ''
+  const [{ data: rawProfile }, { data: rawForms }, { data: rawResponses }] = await Promise.all([
+    supabase.from('profiles').select('email,username,image_url,plan').eq('id', user.id).maybeSingle(),
+    supabase.from('forms').select('id,title,mode,status,trust_config,updated_at').eq('owner_id', user.id).order('updated_at', { ascending: false }),
+    supabase.from('responses').select('form_id'),
+  ])
+
+  const profile   = rawProfile as { username: string | null; image_url: string | null; plan: string } | null
+  const forms     = (rawForms ?? []) as unknown as { id: string; title: string; mode: 'survey' | 'election'; status: 'draft' | 'active' | 'closed'; trust_config: TrustConfig; updated_at: string }[]
+  const responses = rawResponses ?? []
+
+  const countMap = responses.reduce((acc, r: any) => {
+    acc[r.form_id] = (acc[r.form_id] ?? 0) + 1
+    return acc
+  }, {} as Record<string, number>)
+
+  const totalResponses = responses.length
+  const activeForms    = forms.filter(f => f.status === 'active').length
+  const avgCompletion  = forms.length ? Math.round((forms.filter(f => (countMap[f.id] ?? 0) > 0).length / forms.length) * 100) : 0
+  const avgTrust       = forms.length ? (forms.reduce((s, f) => s + calcTrustScore(f.trust_config), 0) / forms.length).toFixed(1) : '—'
+
+  const meta        = user.user_metadata ?? {}
+  const displayName = meta.full_name ?? meta.name ?? profile?.username ?? user.email ?? 'Account'
+  const avatarUrl   = profile?.image_url ?? meta.avatar_url ?? meta.picture ?? ''
+  const planLabel   = profile?.plan ? profile.plan.charAt(0).toUpperCase() + profile.plan.slice(1) + ' plan' : 'Starter plan'
+
+  const stats = [
+    { label: 'TOTAL RESPONSES', value: String(totalResponses), color: 'text-slate-900' },
+    { label: 'ACTIVE FORMS',    value: String(activeForms),    color: 'text-slate-900' },
+    { label: 'AVG. COMPLETION', value: `${avgCompletion}%`,    color: 'text-slate-900' },
+    { label: 'TRUST SCORE AVG', value: `${avgTrust}/5`,        color: 'text-emerald-600' },
+  ]
 
   return (
-    <div className='flex h-screen bg-slate-50 overflow-hidden'>
-      <div className='flex-1 overflow-y-auto'>
-        <div className='border-b border-slate-200 bg-white px-7 py-6'>
-          <div className='flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between'>
-            <div className='flex items-center gap-4'>
-              <div className='h-14 w-14 overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-slate-200'>
-                {avatarUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={avatarUrl}
-                    alt={displayName}
-                    className='h-full w-full object-cover'
-                  />
-                ) : (
-                  <div className='flex h-full w-full items-center justify-center text-lg font-bold text-slate-600'>
-                    {displayName.slice(0, 1).toUpperCase()}
-                  </div>
-                )}
-              </div>
-              <div>
-                <p className='text-xs font-semibold uppercase tracking-[0.2em] text-slate-400'>
-                  Signed in as
-                </p>
-                <h1 className='text-2xl font-extrabold tracking-tight text-slate-900'>
-                  {displayName}
-                </h1>
-                <p className='text-sm text-slate-500'>{user.email}</p>
-              </div>
-            </div>
+    <div className="flex h-screen bg-white overflow-hidden">
+      <Sidebar displayName={displayName} avatarUrl={avatarUrl} planLabel={planLabel} formCount={forms.length} />
 
-            <div className='flex items-center gap-3'>
-              <div className='rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm'>
-                <p className='text-xs font-semibold uppercase tracking-[0.16em] text-slate-400'>
-                  Username
-                </p>
-                <p className='font-semibold text-slate-900'>
-                  {(profile as ProfileRow | null | undefined)?.username ??
-                    '—'}
-                </p>
-              </div>
-              <Link
-                href='/builder'
-                className='flex items-center gap-2 rounded-xl bg-sky-500 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-600'
-              >
-                + Create form
-              </Link>
-              <LogoutButton />
-            </div>
+      <main className="flex-1 overflow-y-auto bg-white">
+        <div className="flex items-start justify-between px-8 pt-8 pb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">My Forms</h1>
+            <p className="text-sm text-slate-400 mt-1">
+              {forms.length} form{forms.length !== 1 ? 's' : ''} · {totalResponses} total response{totalResponses !== 1 ? 's' : ''}
+            </p>
           </div>
+          <form action={createForm.bind(null, 'survey')}>
+            <button type="submit" className="flex items-center gap-2 bg-sky-500 hover:bg-sky-600 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition">
+              + Create form
+            </button>
+          </form>
         </div>
 
-        <div className='p-7'>
-          <div className='mb-6 grid gap-4 sm:grid-cols-3'>
-            <div className='rounded-2xl border border-slate-200 bg-white p-4'>
-              <p className='text-xs font-semibold uppercase tracking-[0.16em] text-slate-400'>
-                Email
-              </p>
-              <p className='mt-2 break-all text-sm font-semibold text-slate-900'>
-                {user.email}
-              </p>
-            </div>
-            <div className='rounded-2xl border border-slate-200 bg-white p-4'>
-              <p className='text-xs font-semibold uppercase tracking-[0.16em] text-slate-400'>
-                Name
-              </p>
-              <p className='mt-2 text-sm font-semibold text-slate-900'>
-                {displayName}
-              </p>
-            </div>
-            <div className='rounded-2xl border border-slate-200 bg-white p-4'>
-              <p className='text-xs font-semibold uppercase tracking-[0.16em] text-slate-400'>
-                Status
-              </p>
-              <p className='mt-2 text-sm font-semibold text-emerald-600'>
-                Authenticated
-              </p>
-            </div>
-          </div>
+        <StatsBar stats={stats} />
 
-          <Suspense fallback={<DashboardLoading />}>
-            <FormsList userId={user.id} />
-          </Suspense>
+        <div className="px-8 py-6">
+          <FormsList forms={forms} countMap={countMap} />
         </div>
-      </div>
+      </main>
     </div>
   )
 }
