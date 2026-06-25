@@ -5,7 +5,9 @@ import { cookies } from 'next/headers'
 export async function GET(req: NextRequest) {
   const { searchParams, origin } = new URL(req.url)
   const code = searchParams.get('code')
-  const next = searchParams.get('next') ?? '/dashboard'
+  const rawNext = searchParams.get('next') ?? '/dashboard'
+  // Only allow same-origin redirects; reject anything with a protocol or host
+  const next = rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : '/dashboard'
 
   const errorDesc = searchParams.get('error_description') || searchParams.get('error')
 

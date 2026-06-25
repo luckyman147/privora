@@ -124,8 +124,9 @@ BEGIN
     CREATE POLICY "Form owners can read responses" ON responses FOR SELECT
       USING (EXISTS (SELECT 1 FROM forms WHERE forms.id = responses.form_id AND forms.owner_id = auth.uid()));
   END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'responses' AND policyname = 'Anyone can insert responses') THEN
-    CREATE POLICY "Anyone can insert responses" ON responses FOR INSERT WITH CHECK (true);
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'responses' AND policyname = 'Anyone can insert responses to active forms') THEN
+    CREATE POLICY "Anyone can insert responses to active forms" ON responses FOR INSERT
+      WITH CHECK (EXISTS (SELECT 1 FROM forms WHERE forms.id = form_id AND forms.status = 'active'));
   END IF;
 END;
 $$;
@@ -143,9 +144,12 @@ ALTER TABLE submission_tokens ENABLE ROW LEVEL SECURITY;
 
 DO $$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'submission_tokens' AND policyname = 'Anyone can insert submission tokens') THEN
-    CREATE POLICY "Anyone can insert submission tokens" ON submission_tokens FOR INSERT WITH CHECK (true);
+  -- Only allow inserts for active forms (prevents pre-poisoning tokens for closed/draft forms)
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'submission_tokens' AND policyname = 'Anyone can insert tokens for active forms') THEN
+    CREATE POLICY "Anyone can insert tokens for active forms" ON submission_tokens FOR INSERT
+      WITH CHECK (EXISTS (SELECT 1 FROM forms WHERE forms.id = form_id AND forms.status = 'active'));
   END IF;
+  -- Allow SELECT so the API route can check for duplicates (hashes are SHA-256, not reversible)
   IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'submission_tokens' AND policyname = 'Anyone can read submission tokens') THEN
     CREATE POLICY "Anyone can read submission tokens" ON submission_tokens FOR SELECT USING (true);
   END IF;

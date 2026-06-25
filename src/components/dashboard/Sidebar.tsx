@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { logout } from '@/app/dashboard/actions'
+import { logout } from '@/app/(app)/dashboard/actions'
 
 interface Props {
   displayName: string

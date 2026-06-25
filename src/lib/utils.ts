@@ -86,7 +86,7 @@ export function formatRelative(iso: string): string {
 }
 
 export function newQuestionId(): string {
-  return `q_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,6)}`
+  return `q_${crypto.randomUUID().replace(/-/g, '').slice(0, 12)}`
 }
 
 export function completionRate(responses: Response[], questions: Question[]): number {

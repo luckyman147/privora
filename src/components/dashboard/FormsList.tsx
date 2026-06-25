@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { createForm } from '@/app/dashboard/actions'
+import { createForm } from '@/app/(app)/dashboard/actions'
 
 interface FormRow {
   id:        string

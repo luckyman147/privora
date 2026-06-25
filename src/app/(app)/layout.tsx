@@ -4,7 +4,7 @@ import { Sidebar } from '@/components/dashboard/Sidebar'
 
 export const dynamic = 'force-dynamic'
 
-export default async function ResultsLayout({ children }: { children: React.ReactNode }) {
+export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await requireAuth().catch(() => redirect('/auth'))
   const supabase = await getSupabase()
 

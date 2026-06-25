@@ -1,6 +1,6 @@
 'use client'
 import { useEffect } from 'react'
-import { createForm } from '@/app/dashboard/actions'
+import { createForm } from '@/app/(app)/dashboard/actions'
 
 export default function NewFormPage() {
   useEffect(() => {
