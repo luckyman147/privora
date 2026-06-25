@@ -46,27 +46,16 @@ export default function FormViewPage() {
 
   async function handleSubmit() {
     if (!form) return
-    if (form.mode === 'election') {
-      const token = newQuestionId()
-      const res = await fetch(`/form/${form.id}/submit`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ answers, submission_token: token }),
-      })
-      if (!res.ok) {
-        const err = await res.json()
-        setError(err.error)
-        return
-      }
-      setSubmitted(true)
-      return
-    }
 
-    let token = localStorage.getItem(`token_${form.id}`)
+    // Both modes: persist token in localStorage so re-submits reuse the same token
+    // and are rejected server-side as duplicates.
+    const storageKey = `token_${form.id}`
+    let token = localStorage.getItem(storageKey)
     if (!token) {
       token = newQuestionId()
-      localStorage.setItem(`token_${form.id}`, token)
+      localStorage.setItem(storageKey, token)
     }
+
     const res = await fetch(`/form/${form.id}/submit`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

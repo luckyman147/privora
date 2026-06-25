@@ -43,6 +43,12 @@ export const DEFAULT_TRUST_CONFIG: TrustConfig = {
   retention_days:   90,
 }
 
+function csvCell(v: string): string {
+  // Prefix formula-injection characters so Excel/Sheets treats them as text
+  const safe = /^[=+\-@\t\r]/.test(v) ? `\t${v}` : v
+  return `"${safe.replace(/"/g, '""')}"`
+}
+
 export function responsesToCSV(form: Form, responses: Response[]): string {
   const headers = ['submitted_at', ...form.questions.map(q => q.label)]
   const rows = responses.map(r => [
@@ -53,7 +59,7 @@ export function responsesToCSV(form: Form, responses: Response[]): string {
     }),
   ])
   return [headers, ...rows]
-    .map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))
+    .map(r => r.map(v => csvCell(String(v))).join(','))
     .join('\n')
 }
 

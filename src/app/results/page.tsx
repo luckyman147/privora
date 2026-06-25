@@ -35,8 +35,7 @@ export default async function ResultsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-6xl mx-auto p-8">
+    <div className="max-w-6xl mx-auto p-8">
         <div className="flex items-center justify-between mb-8">
           <div>
             <Link href="/dashboard" className="text-sm text-slate-400 hover:text-slate-600 mb-2 block">← Dashboard</Link>
@@ -88,6 +87,5 @@ export default async function ResultsPage() {
           </div>
         )}
       </div>
-    </div>
   )
 }
