@@ -1,11 +1,13 @@
 import { redirect } from 'next/navigation'
-import { requireAuth, getSupabase } from '@/lib/supabase'
+import Link from 'next/link'
+import { requireAuth, getSupabase } from '@/lib/supabase/server'
 import { calcTrustScore } from '@/lib/types'
 import { createForm } from './actions'
 import { StatsBar } from '@/components/dashboard/StatsBar'
 import { FormsList } from '@/components/dashboard/FormsList'
+import { getTemplateIcon } from '@/lib/utils'
 import type { Metadata } from 'next'
-import type { TrustConfig } from '@/lib/types'
+import type { TrustConfig, FormTemplate } from '@/lib/types'
 
 export const metadata: Metadata = { title: 'Dashboard – Privora' }
 export const dynamic = 'force-dynamic'
@@ -14,13 +16,16 @@ export default async function DashboardPage() {
   const user = await requireAuth().catch(() => redirect('/auth'))
   const supabase = await getSupabase()
 
-  const [{ data: _profile }, { data: rawForms }, { data: rawResponses }] = await Promise.all([
+  const [{ data: _profile }, { data: rawForms }, { data: rawResponses }, { data: rawTemplates }] = await Promise.all([
     supabase.from('profiles').select('plan').eq('id', user.id).maybeSingle(),
-    supabase.from('forms').select('id,title,mode,status,trust_config,updated_at').eq('owner_id', user.id).order('updated_at', { ascending: false }),
+    supabase.from('forms').select('id,title,status,design_config,trust_config,questions,updated_at').eq('owner_id', user.id).order('updated_at', { ascending: false }),
     supabase.from('responses').select('form_id'),
+    (supabase as any).from('form_templates').select('*').or(`owner_id.eq.${user.id},is_primitive.eq.true`).order('name'),
   ])
 
-  const forms     = (rawForms ?? []) as unknown as { id: string; title: string; mode: 'survey' | 'election'; status: 'draft' | 'active' | 'closed'; trust_config: TrustConfig; updated_at: string }[]
+  const templates = (rawTemplates ?? []) as FormTemplate[]
+
+  const forms     = (rawForms ?? []) as unknown as { id: string; title: string; status: 'draft' | 'active' | 'closed'; design_config: any; trust_config: TrustConfig; questions: any[]; updated_at: string }[]
   const responses = rawResponses ?? []
 
   const countMap = responses.reduce((acc, r: any) => {
@@ -49,11 +54,49 @@ export default async function DashboardPage() {
             {forms.length} form{forms.length !== 1 ? 's' : ''} · {totalResponses} total response{totalResponses !== 1 ? 's' : ''}
           </p>
         </div>
-        <form action={createForm.bind(null, 'survey')}>
+        <form action={createForm}>
           <button type="submit" className="flex items-center gap-2 bg-sky-500 hover:bg-sky-600 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition">
             + Create form
           </button>
         </form>
+      </div>
+
+      {/* Templates */}
+      <div className="px-8 pb-4">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Templates</h2>
+          <Link href="/templates" className="text-xs font-semibold text-sky-600 hover:text-sky-700">View all</Link>
+        </div>
+        <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-thin">
+          {templates.map((t) => (
+            <Link
+              key={t.id}
+              href={`/builder?template=${t.id}`}
+              className="min-w-[240px] shrink-0 snap-start bg-white border border-slate-200 rounded-xl p-4 hover:border-sky-300 hover:shadow-sm transition"
+            >
+              <div className="flex items-start gap-3">
+                <span className="text-lg shrink-0 mt-0.5">{getTemplateIcon(t.icon)}</span>
+                <div className="min-w-0">
+                  <p className="font-semibold text-sm text-slate-900 truncate">{t.name}</p>
+                  {t.description && (
+                    <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{t.description}</p>
+                  )}
+                  <div className="flex items-center gap-2 mt-2 text-xs text-slate-400">
+                    <span>{t.category}</span>
+                    <span>&middot;</span>
+                    <span>{t.questions.length} questions</span>
+                    {t.is_primitive && (
+                      <>
+                        <span>&middot;</span>
+                        <span className="text-sky-500 font-medium">Official</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
 
       <StatsBar stats={stats} />

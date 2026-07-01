@@ -1,6 +1,6 @@
 'use server'
 import { redirect } from 'next/navigation'
-import { getSupabase } from '@/lib/supabase'
+import { getSupabaseAction as getSupabase } from '@/lib/supabase/server'
 import { signInSchema, signUpSchema, magicLinkSchema } from './schema'
 
 export async function signIn(formData: FormData) {
@@ -27,7 +27,7 @@ export async function signUp(formData: FormData) {
   })
   if (!parsed.success) return { error: parsed.error.errors[0].message }
   const supabase = await getSupabase()
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email: parsed.data.email,
     password: parsed.data.password,
     options: {
@@ -39,6 +39,7 @@ export async function signUp(formData: FormData) {
     },
   })
   if (error) return { error: error.message }
+  if (!data.session) return { success: 'verify_email' }
   redirect('/dashboard')
 }
 

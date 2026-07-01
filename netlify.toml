@@ -2,6 +2,11 @@
   command = "npm run build"
   publish = ".next"
 
+# NEXT_PUBLIC_SITE_URL must be set in the Netlify dashboard → Site settings → Environment variables
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
 [[headers]]
   for = "/*"
   [headers.values]

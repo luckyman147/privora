@@ -1,4 +1,4 @@
-import { requireAuth, getSupabase } from '@/lib/supabase'
+import { requireAuth, getSupabase } from '@/lib/supabase/server'
 import { Badge } from '@/components/ui/Badge'
 import { formatDate } from '@/lib/utils'
 import { redirect } from 'next/navigation'
@@ -9,25 +9,26 @@ export const metadata: Metadata = { title: 'Results' }
 export const dynamic = 'force-dynamic'
 
 interface FormRow {
-  id: string; title: string; mode: string; status: string
-  updated_at: string; questions: any[]
+  id: string; title: string; status: string
+  updated_at: string
 }
 
 export default async function ResultsPage() {
   const user = await requireAuth().catch(() => redirect('/auth'))
   const supabase = await getSupabase()
 
-  const { data: rawForms } = await (supabase as any)
-    .from('forms')
-    .select('id, title, mode, status, updated_at, questions')
-    .eq('owner_id', user.id)
-    .order('updated_at', { ascending: false })
+  const [{ data: rawForms }, { data: rawCounts }] = await Promise.all([
+    (supabase as any)
+      .from('forms')
+      .select('id, title, status, updated_at')
+      .eq('owner_id', user.id)
+      .order('updated_at', { ascending: false }),
+    (supabase as any)
+      .from('responses')
+      .select('form_id'),
+  ])
 
   const forms = (rawForms ?? []) as FormRow[]
-
-  const { data: rawCounts } = await (supabase as any)
-    .from('responses')
-    .select('form_id')
 
   const counts: Record<string, number> = {}
   for (const r of (rawCounts ?? []) as { form_id: string }[]) {
@@ -65,7 +66,6 @@ export default async function ResultsPage() {
                   <tr key={form.id} className={i % 2 ? 'bg-slate-50' : 'bg-white'}>
                     <td className="px-4 py-3">
                       <div className="font-semibold text-slate-900">{form.title}</div>
-                      <Badge variant={form.mode} />
                     </td>
                     <td className="px-4 py-3 text-slate-700">{counts[form.id] ?? 0}</td>
                     <td className="px-4 py-3"><Badge variant={form.status} /></td>

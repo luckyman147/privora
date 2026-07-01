@@ -1,13 +1,18 @@
+import { redirect } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
+import { getSupabase } from '@/lib/supabase/server'
 
 import { HowItWorks } from '@/components/landing/HowItWorks'
 import UseCases from '@/components/landing/UseCases'
 import Hero from '@/components/landing/Hero'
 import Footer from '@/components/landing/Footer'
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const supabase = await getSupabase()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (user) redirect('/dashboard')
   return (
     <main className='min-h-screen bg-white'>
       {/* Navigation */}

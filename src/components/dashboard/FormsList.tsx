@@ -1,12 +1,15 @@
 import Link from 'next/link'
 import { createForm } from '@/app/(app)/dashboard/actions'
+import type { DesignConfig } from '@/lib/types'
+import { DEFAULT_DESIGN } from '@/lib/design'
 
 interface FormRow {
-  id:        string
-  title:     string
-  mode:      'survey' | 'election'
-  status:    'draft' | 'active' | 'closed'
-  updated_at: string
+  id:            string
+  title:         string
+  status:        'draft' | 'active' | 'closed'
+  design_config: DesignConfig | null
+  questions:     { label: string }[]
+  updated_at:    string
 }
 
 interface Props {
@@ -15,29 +18,86 @@ interface Props {
 }
 
 const STATUS_STYLE: Record<string, string> = {
-  active: 'text-emerald-600',
-  closed: 'text-red-500',
-  draft:  'text-amber-500',
-}
-
-const MODE_STYLE: Record<string, string> = {
-  survey:   'bg-sky-100 text-sky-700',
-  election: 'bg-emerald-100 text-emerald-700',
+  active: 'text-emerald-600 bg-emerald-50',
+  closed: 'text-red-500 bg-red-50',
+  draft:  'text-amber-500 bg-amber-50',
 }
 
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-function FormIcon({ mode }: { mode: 'survey' | 'election' }) {
+const COUNT_COLORS = [
+  { bg: '#F1F5F9', text: '#475569' },
+  { bg: '#FEF3C7', text: '#92400E' },
+  { bg: '#DBEAFE', text: '#1E40AF' },
+  { bg: '#EDE9FE', text: '#5B21B6' },
+  { bg: '#D1FAE5', text: '#065F46' },
+]
+
+function FormCard({ form, count }: { form: FormRow; count: number }) {
+  const d = form.design_config ?? DEFAULT_DESIGN
+  const bg = d.background_color ?? '#F6F7FB'
+  const primary = d.primary_color ?? '#7C3AED'
+  const ci = count === 0 ? 0 : count <= 10 ? 1 : count <= 50 ? 2 : count <= 200 ? 3 : 4
+  const cc = COUNT_COLORS[ci]
   return (
-    <span className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-      mode === 'survey' ? 'bg-sky-100 text-sky-600' : 'bg-emerald-100 text-emerald-600'
-    }`}>
-      <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-        <path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm0 2h12v10H4V5zm2 2v2h8V7H6zm0 4v2h5v-2H6z" />
-      </svg>
-    </span>
+    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden hover:border-sky-300 hover:shadow-sm transition group">
+      {/* Preview area */}
+      <Link href={`/builder/${form.id}`} className="block relative">
+        <div
+          className="h-40 p-5 flex flex-col justify-end relative"
+          style={{ backgroundColor: bg }}
+        >
+          <div className="bg-white/90 backdrop-blur rounded-lg p-3">
+            <p className="font-bold text-sm truncate" style={{ color: primary }}>
+              {form.title}
+            </p>
+            <div className="mt-2 space-y-1">
+              {form.questions.slice(0, 3).map((q, i) => (
+                <div key={i} className="flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: primary }} />
+                  <span className="text-xs text-slate-600 truncate">{q.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div
+            className="mt-2 w-20 h-6 rounded text-xs font-semibold text-white flex items-center justify-center"
+            style={{ backgroundColor: primary }}
+          >
+            Submit
+          </div>
+        </div>
+      </Link>
+
+      {/* Info bar */}
+      <div className="px-4 py-3 flex items-center gap-3">
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-sm text-slate-900 truncate group-hover:text-sky-600 transition">
+            {form.title}
+          </p>
+          <div className="flex items-center gap-2 mt-0.5">
+            <span className="text-xs text-slate-400">{fmtDate(form.updated_at)}</span>
+          </div>
+        </div>
+        <span className={`text-xs font-semibold px-2 py-1 rounded-full ${STATUS_STYLE[form.status]}`}>
+          {form.status}
+        </span>
+        <span className="text-xs font-bold px-2 py-1 rounded-full shadow-sm" style={{ backgroundColor: cc.bg, color: cc.text }}>
+          {count}
+        </span>
+        {form.status === 'active' && (
+          <a href={`/form/${form.id}`} target="_blank" rel="noopener noreferrer"
+            className="shrink-0 p-1.5 rounded-lg text-slate-400 hover:text-sky-600 hover:bg-sky-50 transition">
+            <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+              <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+              <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+            </svg>
+          </a>
+        )}
+      </div>
+    </div>
   )
 }
 
@@ -48,7 +108,7 @@ export function FormsList({ forms, countMap }: Props) {
         <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mb-5 text-2xl">📝</div>
         <h3 className="font-bold text-slate-900 mb-2">No forms yet</h3>
         <p className="text-sm text-slate-500 mb-6">Create your first form to start collecting trusted responses.</p>
-        <form action={createForm.bind(null, 'survey')}>
+        <form action={createForm}>
           <button type="submit" className="px-5 py-2 text-sm font-semibold text-white bg-sky-500 rounded-lg hover:bg-sky-600 transition">
             Create form
           </button>
@@ -58,36 +118,10 @@ export function FormsList({ forms, countMap }: Props) {
   }
 
   return (
-    <div className="divide-y divide-slate-100 border border-slate-200 rounded-2xl overflow-hidden">
-      {forms.map(form => {
-        const count = countMap[form.id] ?? 0
-        return (
-          <Link
-            key={form.id}
-            href={`/builder/${form.id}`}
-            className="flex items-center gap-4 px-5 py-4 bg-white hover:bg-slate-50 transition group"
-          >
-            <FormIcon mode={form.mode} />
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-slate-900 truncate">{form.title}</p>
-              <div className="flex items-center gap-2 mt-1">
-                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${MODE_STYLE[form.mode]}`}>
-                  {form.mode.charAt(0).toUpperCase() + form.mode.slice(1)}
-                </span>
-                <span className="text-xs text-slate-400">{count} response{count !== 1 ? 's' : ''}</span>
-                <span className="text-xs text-slate-300">·</span>
-                <span className="text-xs text-slate-400">{fmtDate(form.updated_at)}</span>
-              </div>
-            </div>
-            <span className={`text-sm font-semibold ${STATUS_STYLE[form.status]}`}>
-              {form.status.charAt(0).toUpperCase() + form.status.slice(1)}
-            </span>
-            <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-slate-300 group-hover:text-slate-400 transition shrink-0">
-              <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-            </svg>
-          </Link>
-        )
-      })}
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {forms.map(form => (
+        <FormCard key={form.id} form={form} count={countMap[form.id] ?? 0} />
+      ))}
     </div>
   )
 }

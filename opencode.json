@@ -1,0 +1,14 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "nara/mistral-medium-3-5",
+  "small_model": "nara/mimo-v2.5-free",
+  "provider": {
+    "nara": {
+      "api": "openai",
+      "env": ["NARA_API_KEY"],
+      "options": {
+        "baseURL": "https://router.bynara.id/v1"
+      }
+    }
+  }
+}
