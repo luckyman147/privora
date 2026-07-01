@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth, getSupabase } from '@/lib/supabase'
+import { requireAuth, getSupabaseAction as getSupabase } from '@/lib/supabase/server'
 import { responsesToCSV } from '@/lib/utils'
 import type { Form } from '@/lib/types'
 

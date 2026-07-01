@@ -1,176 +1,171 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
-import { TrustScoreCard } from '@/components/TrustScore/TrustScoreCard'
-import { Button } from '@/components/ui/Button'
-import { createClient } from '@/lib/supabase-browser'
-import { newQuestionId } from '@/lib/utils'
+import { useParams, useSearchParams } from 'next/navigation'
+import { createClient } from '@/lib/supabase/browser'
+import { resolveDesign, WIDTHS, PADDING, resolveQContainer } from '@/components/form/design'
+import { useFormSubmit } from '@/components/form/useFormSubmit'
+import { LoadingScreen } from '@/components/form/_screens/LoadingScreen'
+import { WelcomeScreen } from '@/components/form/_screens/WelcomeScreen'
+import { SubmittedScreen } from '@/components/form/_screens/SubmittedScreen'
+import { FormProgress } from '@/components/form/_screens/FormProgress'
+import { FormHeader } from '@/components/form/_views/FormHeader'
+import { PageIndicator } from '@/components/form/_views/PageIndicator'
+import { FormNav } from '@/components/form/_views/FormNav'
+import { QuestionCard } from '@/components/form/_renderer/QuestionCard'
+import { QuestionRenderer } from '@/components/form/_renderer/QuestionRenderer'
+import { IdentityFields } from '@/components/form/IdentityFields'
+import { isQuestionVisible } from '@/lib/logic'
+import { animKF } from '@/components/builder/design/primitives'
 import type { Form } from '@/lib/types'
 
 export default function FormViewPage() {
   const params = useParams()
   const formId = params?.id as string | undefined
+  const searchParams = useSearchParams()
+  const cacheKey = searchParams?.get('_t') ?? ''
+
   const [form, setForm] = useState<Form | null>(null)
   const [answers, setAnswers] = useState<Record<string, any>>({})
   const [submitted, setSubmitted] = useState(false)
-  const [error, setError] = useState('')
+  const [uploading, setUploading] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [currentPage, setCurrentPage] = useState(0)
+  const [welcomeDismissed, setWelcomeDismissed] = useState(false)
 
   useEffect(() => {
     if (!formId) return
-    ;(createClient() as any).from('forms')
-      .select('*')
-      .eq('id', formId)
-      .single()
-      .then(({ data }: any) => setForm(data as unknown as Form))
-  }, [formId])
+    ;(createClient() as any).from('forms').select('*').eq('id', formId).single()
+      .then(({ data }: any) => {
+        if (data) {
+          console.log('[FormPreview] loaded questions:', (data as Form).questions?.map((q: any) => ({ id: q.id, label: q.label, logic: q.logic })))
+          setForm(data as Form)
+        }
+      })
+  }, [formId, cacheKey])
 
-  if (!form) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="w-8 h-8 border-2 border-sky-500 border-t-transparent rounded-full animate-spin" />
-      </div>
-    )
-  }
-
-  if (submitted) {
-    return (
-      <div className="max-w-lg mx-auto pt-24 px-4 text-center">
-        <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
-          <span className="text-2xl text-emerald-600">✓</span>
-        </div>
-        <h2 className="text-2xl font-bold text-slate-900 mb-2">Response submitted.</h2>
-        <p className="text-slate-500 mb-8">Your response has been recorded anonymously.</p>
-      </div>
-    )
-  }
-
-  async function handleSubmit() {
+  useEffect(() => {
     if (!form) return
-
-    // Both modes: persist token in localStorage so re-submits reuse the same token
-    // and are rejected server-side as duplicates.
-    const storageKey = `token_${form.id}`
-    let token = localStorage.getItem(storageKey)
-    if (!token) {
-      token = newQuestionId()
-      localStorage.setItem(storageKey, token)
+    const d = resolveDesign(form)
+    const fonts = [...new Set([d.heading_font, d.body_font])].filter(Boolean)
+    if (!fonts.length) return
+    const id = 'form-preview-fonts'
+    let link = document.getElementById(id) as HTMLLinkElement | null
+    if (!link) {
+      link = document.createElement('link')
+      link.id = id; link.rel = 'stylesheet'
+      document.head.appendChild(link)
     }
+    link.href = `https://fonts.googleapis.com/css2?${fonts.map(f => `family=${f.replace(/ /g, '+')}:wght@400;600;700`).join('&')}&display=swap`
+  }, [form])
 
-    const res = await fetch(`/form/${form.id}/submit`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ answers, submission_token: token }),
-    })
-    if (!res.ok) {
-      const err = await res.json()
-      setError(err.error)
-      return
+  const handleAnswer = (key: string, value: any) =>
+    setAnswers(prev => ({ ...prev, [key]: value }))
+
+  const { handleNext, handleSubmit } = useFormSubmit(
+    form, answers, () => setSubmitted(true), setUploading)
+
+  if (!form) return <LoadingScreen />
+
+  const d = resolveDesign(form)
+
+  const pages = (() => {
+    const result: (typeof form.questions[0])[][] = []
+    let cur: (typeof form.questions[0])[] = []
+    for (const q of form.questions) {
+      if (q.type === 'page_break') { result.push(cur); cur = [] }
+      else cur.push(q)
     }
-    setSubmitted(true)
+    result.push(cur)
+    return result.filter(p => p.length > 0)
+  })()
+
+  const currentPageQs = pages[currentPage] ?? []
+
+  const absoluteIndex: Record<string, number> = {}
+  let qNum = 0
+  for (const q of form.questions) {
+    if (q.type !== 'section' && q.type !== 'page_break') absoluteIndex[q.id] = qNum++
   }
+
+  const visibleQs = form.questions.filter(q => q.type !== 'section' && q.type !== 'page_break' && isQuestionVisible(q, answers, form.questions))
+  const answered = visibleQs.filter(q => {
+    if (q.type === 'matrix') return true
+    const v = answers[q.id]
+    return v != null && v !== '' && !(Array.isArray(v) && v.length === 0)
+  })
+  const progress = visibleQs.length === 0 ? 100 : Math.round((answered.length / visibleQs.length) * 100)
+
+  const pageBgStyle: React.CSSProperties = (() => {
+    if (d.background_type === 'gradient') {
+      const c1 = d.gradient_color_1 ?? d.primary_color
+      const c2 = d.gradient_color_2 ?? '#a855f7'
+      return { backgroundImage: `linear-gradient(${d.gradient_angle ?? '135deg'}, ${c1}, ${c2})` }
+    }
+    if (d.background_type === 'image' && d.background_image_url) {
+      return {
+        backgroundImage: `url(${d.background_image_url})`,
+        backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat',
+      }
+    }
+    return { backgroundColor: d.background_color }
+  })()
+
+  if (d.welcome_enabled !== false && !welcomeDismissed) {
+    return <WelcomeScreen d={d} form={form} onStart={() => setWelcomeDismissed(true)} />
+  }
+
+  if (submitted) return <SubmittedScreen d={d} message={form.responses_config?.confirmation_message} />
 
   return (
-    <div className="max-w-2xl mx-auto py-12 px-4">
-      <TrustScoreCard config={form.trust_config} formTitle={form.title} />
+    <div style={{ minHeight: '100vh', fontFamily: d.body_font, ...pageBgStyle }}>
+      <FormProgress d={d} progress={progress} />
 
-      <h1 className="text-2xl font-bold text-slate-900 mt-8 mb-6">{form.title}</h1>
+      <div style={{
+        maxWidth: WIDTHS[d.form_width], margin: '0 auto',
+        padding: PADDING[d.page_padding], fontFamily: d.body_font,
+      }}>
+        <FormHeader d={d} form={form} cardStyle={{}} />
 
-      <div className="space-y-6">
-        {form.questions.map((q, i) => (
-          <div key={q.id} className="bg-white border border-slate-200 rounded-xl p-5">
-            <label className="block text-sm font-semibold text-slate-900 mb-2">
-              {i + 1}. {q.label}
-              {q.required && <span className="text-red-400 ml-1">*</span>}
-            </label>
+        <PageIndicator d={d} pages={pages} currentPage={currentPage} />
 
-            {q.type === 'short_text' && (
-              <input onChange={e => setAnswers(a => ({...a, [q.id]: e.target.value}))}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-sky-400" />
-            )}
+        <div style={resolveQContainer(d)}>
+          {currentPage === 0 && (
+            <IdentityFields identity={form.trust_config.identity}
+              answers={answers} d={d} onAnswer={handleAnswer} />
+          )}
+          {currentPageQs.filter(q => {
+            const visible = isQuestionVisible(q, answers, form.questions)
+            console.log('[FormPreview] question:', q.label, 'visible:', visible, 'answers:', answers)
+            return visible
+          }).map(q => {
+            if (q.type === 'section') {
+              return (
+                <div key={q.id} style={{ paddingTop: 8 }}>
+                  <h2 style={{ fontSize: 15, fontWeight: 700, color: '#1e293b', fontFamily: d.heading_font, marginBottom: 2 }}>
+                    {q.label}
+                  </h2>
+                  {q.description && <p style={{ fontSize: 12, color: '#94a3b8' }}>{q.description}</p>}
+                </div>
+              )
+            }
+            return (
+              <QuestionCard key={q.id} q={q} index={absoluteIndex[q.id]} d={d}>
+                <QuestionRenderer q={q} d={d} answers={answers} onAnswer={handleAnswer} />
+              </QuestionCard>
+            )
+          })}
+        </div>
 
-            {q.type === 'long_text' && (
-              <textarea onChange={e => setAnswers(a => ({...a, [q.id]: e.target.value}))}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-sky-400 min-h-[80px]" />
-            )}
-
-            {q.type === 'multiple_choice' && q.options?.map(opt => (
-              <label key={opt} className="flex items-center gap-2 py-1.5 text-sm text-slate-700 cursor-pointer">
-                <input type="radio" name={q.id} value={opt}
-                  onChange={e => setAnswers(a => ({...a, [q.id]: e.target.value}))}
-                  className="accent-sky-500" />
-                {opt}
-              </label>
-            ))}
-
-            {q.type === 'checkboxes' && q.options?.map(opt => (
-              <label key={opt} className="flex items-center gap-2 py-1.5 text-sm text-slate-700 cursor-pointer">
-                <input type="checkbox" value={opt}
-                  onChange={e => {
-                    const current = (answers[q.id] as string[]) ?? []
-                    const next = e.target.checked ? [...current, opt] : current.filter(v => v !== opt)
-                    setAnswers(a => ({...a, [q.id]: next}))
-                  }}
-                  className="accent-sky-500" />
-                {opt}
-              </label>
-            ))}
-
-            {q.type === 'dropdown' && (
-              <select onChange={e => setAnswers(a => ({...a, [q.id]: e.target.value}))}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:border-sky-400">
-                <option value="">Select...</option>
-                {q.options?.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-              </select>
-            )}
-
-            {q.type === 'rating' && (
-              <div className="flex gap-2">
-                {Array.from({ length: q.max_rating ?? 5 }).map((_, v) => (
-                  <button key={v} type="button" onClick={() => setAnswers(a => ({...a, [q.id]: v + 1}))}
-                    className={`w-9 h-9 rounded-lg text-sm font-bold border transition ${answers[q.id] === v + 1 ? 'bg-sky-500 text-white border-sky-500' : 'bg-white text-slate-500 border-slate-200 hover:border-sky-300'}`}>
-                    {v + 1}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {q.type === 'matrix' && q.rows && q.columns && (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr>
-                      <th className="text-left text-slate-400 font-medium p-2" />
-                      {q.columns.map(col => (
-                        <th key={col} className="text-center text-slate-400 font-medium p-2 text-xs">{col}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {q.rows.map(row => (
-                      <tr key={row}>
-                        <td className="text-slate-700 p-2 text-xs">{row}</td>
-                        {q.columns!.map(col => (
-                          <td key={col} className="text-center p-2">
-                            <input type="radio" name={`${q.id}_${row}`} value={col}
-                              onChange={() => setAnswers(a => ({...a, [`${q.id}_${row}`]: col}))}
-                              className="accent-sky-500" />
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        ))}
+        <FormNav d={d} currentPage={currentPage} totalPages={pages.length}
+          submitting={submitting} uploading={uploading}
+          onBack={() => { setCurrentPage(p => p - 1); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
+          onNext={() => handleNext(currentPageQs.filter(q => isQuestionVisible(q, answers, form.questions)), () => {
+            setCurrentPage(p => p + 1); window.scrollTo({ top: 0, behavior: 'smooth' })
+          })}
+          onSubmit={() => handleSubmit(() => setSubmitting(true))} />
       </div>
 
-      {error && <p className="text-xs text-red-500 mt-4">{error}</p>}
-
-      <Button onClick={handleSubmit} size="lg" className="w-full mt-8">
-        Submit
-      </Button>
+      <style>{animKF}</style>
     </div>
   )
 }

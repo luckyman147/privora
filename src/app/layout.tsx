@@ -44,7 +44,7 @@ export default function RootLayout({
       <body className="bg-white text-slate-900 antialiased">
         {children}
         <Toaster
-          position="bottom-right"
+          position="top-center"
           toastOptions={{
             style: {
               background: '#1E293B',

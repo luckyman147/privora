@@ -89,6 +89,10 @@ export function newQuestionId(): string {
   return `q_${crypto.randomUUID().replace(/-/g, '').slice(0, 12)}`
 }
 
+export function getTemplateIcon(icon: string | null): string {
+  return icon || '📋'
+}
+
 export function completionRate(responses: Response[], questions: Question[]): number {
   if (!responses.length) return 0
   const required = questions.filter(q => q.required)
