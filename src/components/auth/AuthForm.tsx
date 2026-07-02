@@ -3,17 +3,16 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { signIn, signUp, sendMagicLink } from '@/app/auth/actions'
+import { signIn, signUp } from '@/app/auth/actions'
 import OAuthButtons from './OAuthButtons'
 
-type Tab = 'signin' | 'signup' | 'magic'
-const TABS: Tab[] = ['signin', 'signup', 'magic']
-const LABEL: Record<Tab, string> = { signin: 'Sign in', signup: 'Create account', magic: 'Magic link' }
-const TITLE: Record<Tab, string> = { signin: 'Welcome back', signup: 'Create your account', magic: 'Send a magic link' }
+type Tab = 'signin' | 'signup'
+const TABS: Tab[] = ['signin', 'signup']
+const LABEL: Record<Tab, string> = { signin: 'Sign in', signup: 'Create account' }
+const TITLE: Record<Tab, string> = { signin: 'Welcome back', signup: 'Create your account' }
 const SUB: Record<Tab, string> = {
   signin: 'Sign in to manage your forms and responses',
   signup: 'Start building privacy-forward forms in minutes',
-  magic: 'Get a one-time sign-in link by email',
 }
 const ic = 'w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-sky-400'
 
@@ -32,7 +31,7 @@ export default function AuthForm() {
     e.preventDefault()
     setError('')
     const fd = new FormData(e.currentTarget)
-    const fn = mode === 'signup' ? signUp : mode === 'magic' ? sendMagicLink : signIn
+    const fn = mode === 'signup' ? signUp : signIn
     const result = await fn(fd) as { error?: string; success?: string | boolean } | void
     if (!result) return
     if (result.error) { setError(result.error); return }
@@ -49,7 +48,7 @@ export default function AuthForm() {
         </Link>
 
         <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm">
-          <div className="grid grid-cols-3 rounded-full bg-slate-100 p-1 text-sm font-semibold text-slate-600 mb-6">
+          <div className="grid grid-cols-2 rounded-full bg-slate-100 p-1 text-sm font-semibold text-slate-600 mb-6">
             {TABS.map(t => (
               <button key={t} type="button" onClick={() => { setMode(t); setError(''); setSuccess('') }}
                 className={`rounded-full px-3 py-2 transition ${mode === t ? 'bg-white text-slate-900 shadow-sm' : ''}`}>
@@ -79,10 +78,8 @@ export default function AuthForm() {
                   </div>
                 )}
                 <input name="email" type="email" placeholder="Email" required className={ic} />
-                {mode !== 'magic' && (
-                  <input name="password" type="password"
-                    placeholder={mode === 'signin' ? 'Password' : 'Password (min 8 chars)'} required className={ic} />
-                )}
+                <input name="password" type="password"
+                  placeholder={mode === 'signin' ? 'Password' : 'Password (min 8 chars)'} required className={ic} />
                 {error && <p className="text-xs text-red-500">{error}</p>}
                 <button type="submit" className="w-full py-2.5 text-sm font-bold text-white bg-sky-500 rounded-xl hover:bg-sky-600">
                   {LABEL[mode]}
