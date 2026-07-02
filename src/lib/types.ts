@@ -9,6 +9,16 @@ export interface Database {
         Insert: { hash: string; form_id: string; created_at?: string }
         Update: Partial<{ hash: string; form_id: string; created_at: string }>
       }
+      response_files: {
+        Row: ResponseFile
+        Insert: Partial<ResponseFile>
+        Update: Partial<ResponseFile>
+      }
+      notifications: {
+        Row: Notification
+        Insert: Partial<Notification>
+        Update: Partial<Notification>
+      }
     }
   }
 }
@@ -237,6 +247,16 @@ export interface ResponseFile {
   file_url:    string
   file_name:   string | null
   created_at:  string
+}
+
+export interface Notification {
+  id:         string
+  user_id:    string
+  form_id:    string
+  form_title: string
+  type:       string
+  read:       boolean
+  created_at: string
 }
 
 export interface FormListItem {

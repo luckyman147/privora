@@ -100,6 +100,13 @@ export async function POST(
       await (supabase as any).from('response_files').insert(fileRows)
     }
 
+    await (supabase as any).from('notifications').insert({
+      user_id: form.owner_id,
+      form_id: form.id,
+      form_title: form.title,
+      type: 'new_response',
+    })
+
     return NextResponse.json({ success: true })
   } catch (err) {
     console.error('[submit]', err)

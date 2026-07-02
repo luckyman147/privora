@@ -2,8 +2,10 @@
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { LogOut } from 'lucide-react'
 import { createClient } from '@/lib/supabase/browser'
 import { logout } from '@/app/(app)/dashboard/actions'
+import NotificationBell from '@/components/dashboard/notifications/NotificationBell'
 
 function initials(name: string) {
   return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
@@ -34,11 +36,13 @@ export default function UserHeader() {
         <span className="font-bold text-slate-900 text-sm">Privora</span>
       </Link>
 
-      <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-full bg-sky-500 flex items-center justify-center shrink-0 overflow-hidden">
+      <div className="flex items-center gap-2">
+        <NotificationBell />
+        <div className="flex items-center gap-3 ml-1">
+        <div className="w-8 h-8 rounded-full bg-violet-500 flex items-center justify-center shrink-0 overflow-hidden">
           {avatarUrl
-            ? // eslint-disable-next-line @next/next/no-img-element
-              <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+            // eslint-disable-next-line @next/next/no-img-element
+            ? <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
             : <span className="text-xs font-bold text-white">{initials(displayName)}</span>}
         </div>
         <div className="text-right">
@@ -46,12 +50,12 @@ export default function UserHeader() {
           <p className="text-xs text-slate-400 leading-tight">{planLabel}</p>
         </div>
         <form action={logout}>
-          <button type="submit" title="Log out" className="text-slate-400 hover:text-slate-600 transition p-1.5 rounded-lg hover:bg-slate-100">
-            <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-              <path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 001 1h7a1 1 0 100-2H4V5h6a1 1 0 100-2H3zm11.293 4.293a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 01-1.414-1.414L15.586 11H9a1 1 0 110-2h6.586l-1.293-1.293a1 1 0 010-1.414z" clipRule="evenodd" />
-            </svg>
+          <button type="submit" title="Log out"
+            className="text-slate-400 hover:text-slate-600 transition p-1.5 rounded-lg hover:bg-slate-100">
+            <LogOut className="w-4 h-4" />
           </button>
         </form>
+      </div>
       </div>
     </header>
   )
