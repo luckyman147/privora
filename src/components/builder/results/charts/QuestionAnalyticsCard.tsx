@@ -81,10 +81,9 @@ function MatrixTable({ question, responses, accent }: {
     })
   })
 
+  const [expanded, setExpanded] = useState(false)
   const hasData = Object.keys(cellMap).length > 0
   if (!hasData) return <p className="text-sm text-slate-400">No matrix responses yet.</p>
-
-  const [expanded, setExpanded] = useState(false)
 
   return (
     <div>

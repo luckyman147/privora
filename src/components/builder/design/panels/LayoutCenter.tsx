@@ -119,6 +119,7 @@ export function LayoutCenter({ d, set, formId }: { d: DesignConfig; set: (p: Par
           <div className="mt-4 space-y-3">
             {d.background_image_url && (
               <div className="relative rounded-xl overflow-hidden h-32 border border-slate-200">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={d.background_image_url} alt="Background" className="w-full h-full object-cover" />
                 <button onClick={() => set({ background_image_url: '' })}
                   className="absolute top-2 right-2 w-6 h-6 bg-black/50 text-white rounded-full text-xs flex items-center justify-center hover:bg-black/70 transition">\u2715</button>
