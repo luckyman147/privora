@@ -38,6 +38,7 @@ export function BackgroundGallery({ value, onChange }: { value: string | undefin
             className={`relative aspect-[4/3] rounded-lg overflow-hidden border-2 transition hover:opacity-90 ${
               value === img.url ? 'border-violet-500 ring-2 ring-violet-200' : 'border-transparent'
             }`}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={img.url} alt={img.id} className="w-full h-full object-cover" loading="lazy" />
           </button>
         ))}

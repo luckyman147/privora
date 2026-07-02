@@ -63,6 +63,7 @@ export function renderLogo(d: DesignConfig, page: 'welcome' | 'thankyou', color:
   const preset = page === 'welcome' ? d.welcome_logo_preset : d.thankyou_logo_preset
   const url = page === 'welcome' ? d.welcome_logo_url : d.thankyou_logo_url
   const h = page === 'welcome' ? (d.welcome_logo_height ?? 56) : (d.thankyou_logo_height ?? 56)
+  // eslint-disable-next-line @next/next/no-img-element
   if (url) return <img src={url} alt="" style={{ height: h, maxHeight: 200, objectFit: 'contain', marginBottom: 24 }} />
   const found = LOGO_PRESETS.find(p => p.id === preset)
   if (found) return <div style={{ marginBottom: 24, display: 'inline-flex', maxHeight: 200 }}>{found.render(color, h)}</div>
