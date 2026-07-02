@@ -6,7 +6,6 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Results' }
-export const dynamic = 'force-dynamic'
 
 interface FormRow {
   id: string; title: string; status: string

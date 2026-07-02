@@ -19,7 +19,7 @@ export async function createForm() {
     .select('id')
     .single()
   if (error) throw new Error(error.message)
-  redirect(`/builder/${(data as never as { id: string }).id}`)
+  return (data as never as { id: string }).id
 }
 
 export async function createFromTemplate(templateId: string) {

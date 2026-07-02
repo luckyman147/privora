@@ -36,10 +36,7 @@ export default function FormViewPage() {
     if (!formId) return
     ;(createClient() as any).from('forms').select('*').eq('id', formId).single()
       .then(({ data }: any) => {
-        if (data) {
-          console.log('[FormPreview] loaded questions:', (data as Form).questions?.map((q: any) => ({ id: q.id, label: q.label, logic: q.logic })))
-          setForm(data as Form)
-        }
+        if (data) setForm(data as Form)
       })
   }, [formId, cacheKey])
 
@@ -133,11 +130,7 @@ export default function FormViewPage() {
             <IdentityFields identity={form.trust_config.identity}
               answers={answers} d={d} onAnswer={handleAnswer} />
           )}
-          {currentPageQs.filter(q => {
-            const visible = isQuestionVisible(q, answers, form.questions)
-            console.log('[FormPreview] question:', q.label, 'visible:', visible, 'answers:', answers)
-            return visible
-          }).map(q => {
+          {currentPageQs.filter(q => isQuestionVisible(q, answers, form.questions)).map(q => {
             if (q.type === 'section') {
               return (
                 <div key={q.id} style={{ paddingTop: 8 }}>

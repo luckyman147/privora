@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import type { Form, DesignConfig } from '@/lib/types'
-import { Palette, LayoutDashboard, Hand, CheckCircle2 } from 'lucide-react'
+import { Palette, LayoutDashboard, Hand, CheckCircle2, SwatchBook } from 'lucide-react'
 import { PRIMARY_COLORS, BG_COLORS, Tog } from './primitives'
 import { ThemesCenter } from './panels/ThemesCenter'
 import { LayoutCenter } from './panels/LayoutCenter'
@@ -9,14 +9,16 @@ import { FormPreview } from './panels/FormPreview'
 import { WelcomePreview, ThankyouPreview } from './panels/screens/ScreenPreviews'
 import { WelcomeConfig } from './panels/screens/WelcomeConfig'
 import { ThankyouConfig } from './panels/screens/ThankyouConfig'
+import { DesignTemplates } from './panels/templates/DesignTemplates'
 interface Props {
   form: Form; design: DesignConfig
   onUpdate: (d: DesignConfig) => void
   onFormPatch?: (fn: (f: Form) => Form) => void
 }
-type Tab = 'themes' | 'layout' | 'welcome' | 'thankyou'
+type Tab = 'templates' | 'themes' | 'layout' | 'welcome' | 'thankyou'
 
 const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
+  { id: 'templates', label: 'Templates', icon: <SwatchBook className="w-4 h-4" /> },
   { id: 'themes', label: 'Themes', icon: <Palette className="w-4 h-4" /> },
   { id: 'layout', label: 'Layout', icon: <LayoutDashboard className="w-4 h-4" /> },
   { id: 'welcome', label: 'Welcome', icon: <Hand className="w-4 h-4" /> },
@@ -27,7 +29,7 @@ const PREVIEW_TABS: { id: 'preview' | 'welcome' | 'thankyou'; label: string }[] 
   { id: 'preview', label: 'Form' }, { id: 'welcome', label: 'Welcome' }, { id: 'thankyou', label: 'Thank you' },
 ]
 const PREVIEW_MAP: Record<Tab, 'preview' | 'welcome' | 'thankyou'> = {
-  themes: 'preview', layout: 'preview', welcome: 'welcome', thankyou: 'thankyou',
+  templates: 'preview', themes: 'preview', layout: 'preview', welcome: 'welcome', thankyou: 'thankyou',
 }
 
 export function BuilderDesign({ form, design, onUpdate, onFormPatch }: Props) {
@@ -124,7 +126,8 @@ export function BuilderDesign({ form, design, onUpdate, onFormPatch }: Props) {
         </div>
       </aside>
 
-      {subTab === 'themes' ? <ThemesCenter d={design} set={set} formId={form.id} /> :
+      {subTab === 'templates' ? <DesignTemplates d={design} set={set} /> :
+       subTab === 'themes' ? <ThemesCenter d={design} set={set} formId={form.id} /> :
        subTab === 'layout' ? <LayoutCenter d={design} set={set} formId={form.id} /> :
        subTab === 'welcome' ? <WelcomeConfig design={design} formId={form.id} onDesignPatch={set} /> :
        subTab === 'thankyou' && onFormPatch ?

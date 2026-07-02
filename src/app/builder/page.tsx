@@ -1,9 +1,10 @@
 'use client'
 import { Suspense, useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createForm, createFromTemplate } from '@/app/(app)/dashboard/actions'
 
 function NewFormContent() {
+  const router = useRouter()
   const searchParams = useSearchParams()
   const template = searchParams.get('template')
 
@@ -11,9 +12,9 @@ function NewFormContent() {
     if (template) {
       createFromTemplate(template)
     } else {
-      createForm()
+      createForm().then(id => router.replace(`/builder/${id}`))
     }
-  }, [template])
+  }, [template, router])
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-slate-50">

@@ -6,7 +6,6 @@ import type { Metadata } from 'next'
 import type { FormTemplate } from '@/lib/types'
 
 export const metadata: Metadata = { title: 'Templates' }
-export const dynamic = 'force-dynamic'
 
 export default async function TemplatesPage() {
   const user = await requireAuth().catch(() => redirect('/auth'))

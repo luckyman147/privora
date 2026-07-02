@@ -32,4 +32,4 @@ export async function middleware(request: NextRequest) {
   return response
 }
 
-export const config = { matcher: ['/dashboard/:path*', '/builder/:path*', '/results/:path*'] }
+export const config = { matcher: ['/dashboard/:path*', '/builder/:path*', '/results/:path*', '/templates/:path*'] }
