@@ -10,7 +10,6 @@ import type { Metadata } from 'next'
 import type { TrustConfig, FormTemplate } from '@/lib/types'
 
 export const metadata: Metadata = { title: 'Dashboard – Privora' }
-export const dynamic = 'force-dynamic'
 
 export default async function DashboardPage() {
   const user = await requireAuth().catch(() => redirect('/auth'))
