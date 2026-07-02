@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { createForm } from '@/app/(app)/dashboard/actions'
+import CreateFormButton from '@/components/dashboard/buttons/CreateFormButton'
 import type { DesignConfig } from '@/lib/types'
 import { DEFAULT_DESIGN } from '@/lib/design'
 
@@ -108,11 +108,7 @@ export function FormsList({ forms, countMap }: Props) {
         <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mb-5 text-2xl">📝</div>
         <h3 className="font-bold text-slate-900 mb-2">No forms yet</h3>
         <p className="text-sm text-slate-500 mb-6">Create your first form to start collecting trusted responses.</p>
-        <form action={createForm}>
-          <button type="submit" className="px-5 py-2 text-sm font-semibold text-white bg-sky-500 rounded-lg hover:bg-sky-600 transition">
-            Create form
-          </button>
-        </form>
+        <CreateFormButton />
       </div>
     )
   }

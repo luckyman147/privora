@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Button } from '@/components/ui/Button'
 import { getSupabase } from '@/lib/supabase/server'
 
 import { HowItWorks } from '@/components/landing/HowItWorks'
@@ -34,12 +33,6 @@ export default async function LandingPage() {
             >
               Features
             </a>
-            <Link
-              href='/pricing'
-              className='text-sm font-500 text-slate-700 hover:bg-slate-100 px-3 py-2 rounded-lg'
-            >
-              Pricing
-            </Link>
             <a
               href='#faq'
               className='text-sm font-500 text-slate-700 hover:bg-slate-100 px-3 py-2 rounded-lg'
@@ -68,36 +61,6 @@ export default async function LandingPage() {
       <Hero />
       <UseCases />
       <HowItWorks />
-
-      {/* CTA Section */}
-      <section className='bg-gradient-to-br from-slate-900 to-slate-800 py-20 px-12'>
-        <div className='max-w-2xl mx-auto text-center'>
-          <h2 className='text-4xl font-800 text-white mb-4'>
-            Ready to build forms people trust?
-          </h2>
-          <p className='text-lg text-slate-300 mb-8'>
-            Join thousands of organizations collecting honest, anonymous
-            responses.
-          </p>
-          <div className='flex justify-center gap-4'>
-            <Link
-              href='/auth'
-              className='font-600 text-white bg-sky-500 px-8 py-3 rounded-lg hover:bg-sky-600'
-            >
-              Get started free
-            </Link>
-            <a
-              href='#'
-              className='font-600 text-slate-300 border border-slate-600 px-8 py-3 rounded-lg hover:bg-slate-700/50'
-            >
-              Schedule demo
-            </a>
-          </div>
-          <p className='text-sm text-slate-400 mt-4'>
-            No credit card required · Free forever plan
-          </p>
-        </div>
-      </section>
 
       <Footer />
     </main>

@@ -2,9 +2,9 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { requireAuth, getSupabase } from '@/lib/supabase/server'
 import { calcTrustScore } from '@/lib/types'
-import { createForm } from './actions'
 import { StatsBar } from '@/components/dashboard/StatsBar'
 import { FormsList } from '@/components/dashboard/FormsList'
+import CreateFormButton from '@/components/dashboard/buttons/CreateFormButton'
 import { getTemplateIcon } from '@/lib/utils'
 import type { Metadata } from 'next'
 import type { TrustConfig, FormTemplate } from '@/lib/types'
@@ -53,11 +53,7 @@ export default async function DashboardPage() {
             {forms.length} form{forms.length !== 1 ? 's' : ''} · {totalResponses} total response{totalResponses !== 1 ? 's' : ''}
           </p>
         </div>
-        <form action={createForm}>
-          <button type="submit" className="flex items-center gap-2 bg-sky-500 hover:bg-sky-600 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition">
-            + Create form
-          </button>
-        </form>
+        <CreateFormButton />
       </div>
 
       {/* Templates */}
