@@ -10,8 +10,12 @@ import Hero from '@/components/landing/Hero'
 import Footer from '@/components/landing/Footer'
 
 export default async function LandingPage() {
-  const supabase = await getSupabase()
-  const { data: { user } } = await supabase.auth.getUser()
+  let user = null
+  try {
+    const supabase = await getSupabase()
+    const { data } = await supabase.auth.getUser()
+    user = data.user
+  } catch {}
   if (user) redirect('/dashboard')
   return (
     <main className='min-h-screen bg-white'>

@@ -11,9 +11,14 @@ function initials(name: string) {
 }
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await getSupabase()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/auth')
+  let supabase: any = null
+  let user: any = null
+  try {
+    supabase = await getSupabase()
+    const { data } = await supabase.auth.getUser()
+    user = data.user
+  } catch {}
+  if (!user || !supabase) redirect('/auth')
 
   const [{ data: rawProfile }] = await Promise.all([
     supabase.from('profiles').select('email,username,image_url,plan').eq('id', user.id).maybeSingle(),
