@@ -26,6 +26,18 @@ describe('generateFormFromPrompt', () => {
     expect(result.design_config.welcome_title).toBe('Welcome!')
   })
 
+  it('parses a response wrapped in a markdown code fence', async () => {
+    const payload = JSON.stringify({
+      title: 'Course Feedback',
+      questions: [{ type: 'short_text', label: 'Your name?', required: true }],
+      design_config: {},
+    })
+    vi.mocked(callHuggingFaceChat).mockResolvedValue('```json\n' + payload + '\n```')
+    const result = await generateFormFromPrompt('a short survey')
+    expect(result.title).toBe('Course Feedback')
+    expect(result.questions).toHaveLength(1)
+  })
+
   it('throws a friendly error when the model returns non-JSON', async () => {
     vi.mocked(callHuggingFaceChat).mockResolvedValue('not json at all')
     await expect(generateFormFromPrompt('a short survey'))

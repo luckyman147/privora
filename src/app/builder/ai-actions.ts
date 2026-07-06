@@ -27,6 +27,12 @@ const SYSTEM_PROMPT = `You generate survey forms as strict JSON. Given a user's 
 
 "title" must summarize the form's purpose in a few words. "options" is required for multiple_choice, checkboxes, and dropdown questions. "section" and "page_break" questions only need a "label" (no options). Colors must be hex strings. Return ONLY the JSON object, nothing else.`
 
+// Some models wrap JSON in a markdown code fence despite instructions not to.
+function stripCodeFence(raw: string): string {
+  const fenced = raw.match(/```(?:json)?\s*([\s\S]*?)\s*```/)
+  return fenced ? fenced[1] : raw
+}
+
 export async function generateFormFromPrompt(prompt: string): Promise<{
   title: string
   description?: string
@@ -42,13 +48,15 @@ export async function generateFormFromPrompt(prompt: string): Promise<{
 
   let parsed: unknown
   try {
-    parsed = JSON.parse(raw)
+    parsed = JSON.parse(stripCodeFence(raw))
   } catch {
+    console.error('generateFormFromPrompt: model returned non-JSON:', raw)
     throw new Error('AI returned an invalid response, please try again')
   }
 
   const result = generatedFormSchema.safeParse(parsed)
   if (!result.success) {
+    console.error('generateFormFromPrompt: schema validation failed:', result.error.message, '\nraw:', raw)
     throw new Error('AI returned an invalid response, please try again')
   }
 
