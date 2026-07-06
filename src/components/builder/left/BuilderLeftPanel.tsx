@@ -15,7 +15,7 @@ interface Props {
   style?:             React.CSSProperties
   onAddQuestion:      (type: QuestionType) => void
   onApplyTemplate:    (questions: Omit<Question, 'id'>[]) => void
-  onApplyGenerated:   (questions: Omit<Question, 'id'>[], design: Partial<DesignConfig>) => void
+  onApplyGenerated:   (questions: Omit<Question, 'id'>[], design: Partial<DesignConfig>, title: string, description?: string) => void
   currentQuestions?:  Question[]
 }
 

@@ -160,9 +160,11 @@ export default function BuilderPage() {
     toast.success('Template applied')
   }
 
-  function applyGenerated(questions: Omit<Question, 'id'>[], design: Partial<DesignConfig>) {
+  function applyGenerated(questions: Omit<Question, 'id'>[], design: Partial<DesignConfig>, title: string, description?: string) {
     patchForm(f => ({
       ...f,
+      title,
+      description,
       questions: questions.map(q => ({ ...q, id: newQuestionId() })),
       design_config: { ...(f.design_config ?? DEFAULT_DESIGN), ...design },
     }))
