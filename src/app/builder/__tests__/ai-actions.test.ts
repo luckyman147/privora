@@ -45,7 +45,7 @@ describe('generateFormFromPrompt', () => {
   it('throws a friendly error when the model returns non-JSON', async () => {
     vi.mocked(callHuggingFaceChat).mockResolvedValue('not json at all')
     await expect(generateFormFromPrompt('a short survey'))
-      .rejects.toThrow('AI returned an invalid response, please try again')
+      .rejects.toThrow('AI returned an invalid response')
   })
 
   it('throws a friendly error when the JSON is missing a title', async () => {
@@ -54,13 +54,13 @@ describe('generateFormFromPrompt', () => {
       design_config: {},
     }))
     await expect(generateFormFromPrompt('a short survey'))
-      .rejects.toThrow('AI returned an invalid response, please try again')
+      .rejects.toThrow('AI returned an invalid response')
   })
 
   it('throws a friendly error when the JSON fails schema validation', async () => {
     vi.mocked(callHuggingFaceChat).mockResolvedValue(JSON.stringify({ title: 'x', questions: [] }))
     await expect(generateFormFromPrompt('a short survey'))
-      .rejects.toThrow('AI returned an invalid response, please try again')
+      .rejects.toThrow('AI returned an invalid response')
   })
 
   it('propagates errors thrown by the Hugging Face client', async () => {

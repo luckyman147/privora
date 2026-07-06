@@ -68,7 +68,9 @@ export function AIGeneratorPanel({ onApplyGenerated }: Props) {
         className="w-full py-2.5 bg-violet-500 hover:bg-violet-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition">
         {loading ? 'Generating…' : remaining === 0 ? 'Daily limit reached' : 'Generate form'}
       </button>
-      <p className="text-xs text-slate-400">{remaining} of 2 AI generations remaining today</p>
+      {remaining === 0
+        ? <p className="text-xs text-amber-600">Daily limit reached — resets tomorrow</p>
+        : <p className="text-xs text-slate-400">{remaining} of 2 AI generations remaining today</p>}
       {error && (
         <p className="text-xs text-red-500">
           {error} — <button onClick={handleGenerate} className="underline">Try again</button>
