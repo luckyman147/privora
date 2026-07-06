@@ -4,10 +4,15 @@ import { generateFormFromPrompt } from '@/app/builder/ai-actions'
 import { GeneratedPreview } from './GeneratedPreview'
 import type { Question, DesignConfig } from '@/lib/types'
 
-type Generated = { questions: Omit<Question, 'id'>[]; design_config: Partial<DesignConfig> }
+type Generated = {
+  title: string
+  description?: string
+  questions: Omit<Question, 'id'>[]
+  design_config: Partial<DesignConfig>
+}
 
 interface Props {
-  onApplyGenerated: (questions: Omit<Question, 'id'>[], design: Partial<DesignConfig>) => void
+  onApplyGenerated: (questions: Omit<Question, 'id'>[], design: Partial<DesignConfig>, title: string, description?: string) => void
 }
 
 export function AIGeneratorPanel({ onApplyGenerated }: Props) {
@@ -32,8 +37,12 @@ export function AIGeneratorPanel({ onApplyGenerated }: Props) {
   if (result) {
     return (
       <GeneratedPreview
+        title={result.title} description={result.description}
         questions={result.questions} design={result.design_config}
-        onApply={() => { onApplyGenerated(result.questions, result.design_config); setResult(null); setPrompt('') }}
+        onApply={() => {
+          onApplyGenerated(result.questions, result.design_config, result.title, result.description)
+          setResult(null); setPrompt('')
+        }}
         onDiscard={() => setResult(null)}
       />
     )

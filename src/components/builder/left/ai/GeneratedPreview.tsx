@@ -1,21 +1,29 @@
 import type { Question, DesignConfig } from '@/lib/types'
 
 interface Props {
-  questions: Omit<Question, 'id'>[]
-  design:    Partial<DesignConfig>
-  onApply:   () => void
-  onDiscard: () => void
+  title:       string
+  description?: string
+  questions:   Omit<Question, 'id'>[]
+  design:      Partial<DesignConfig>
+  onApply:     () => void
+  onDiscard:   () => void
 }
 
 const TYPE_LABELS: Record<string, string> = {
   short_text: 'Short answer', long_text: 'Long answer',
   multiple_choice: 'Multiple choice', checkboxes: 'Checkboxes',
   dropdown: 'Dropdown', rating: 'Rating', date: 'Date',
+  section: 'Section', page_break: 'Page break',
 }
 
-export function GeneratedPreview({ questions, design, onApply, onDiscard }: Props) {
+export function GeneratedPreview({ title, description, questions, design, onApply, onDiscard }: Props) {
   return (
     <div className="p-4 space-y-4">
+      <div>
+        <p className="text-sm font-semibold text-slate-900">{title}</p>
+        {description && <p className="text-xs text-slate-500 mt-0.5">{description}</p>}
+      </div>
+
       <div>
         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
           {questions.length} question{questions.length === 1 ? '' : 's'}
