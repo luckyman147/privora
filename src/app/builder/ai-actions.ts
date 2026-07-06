@@ -90,7 +90,7 @@ export async function generateFormFromPrompt(prompt: string): Promise<{
   const result = generatedFormSchema.safeParse(parsed)
   if (!result.success) {
     console.error('generateFormFromPrompt: schema validation failed:', result.error.message, '\nraw:', raw)
-    throw new Error('AI returned an invalid response, please try again')
+    throw new Error(`AI returned an invalid response: ${result.error.issues.map(i => i.path.join('.') + ' (' + i.message + ')').join('; ')}`)
   }
 
   await (supabase.from('ai_usage') as any).upsert(
