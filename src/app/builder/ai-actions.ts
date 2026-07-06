@@ -7,6 +7,8 @@ import type { Question, DesignConfig } from '@/lib/types'
 const SYSTEM_PROMPT = `You generate survey forms as strict JSON. Given a user's description, respond with ONLY a JSON object (no prose, no markdown fences) matching this exact shape:
 
 {
+  "title": string,
+  "description"?: string,
   "questions": [
     { "type": one of [${GENERATED_QUESTION_TYPES.map(t => `"${t}"`).join(', ')}],
       "label": string, "description"?: string, "required": boolean,
@@ -17,13 +19,17 @@ const SYSTEM_PROMPT = `You generate survey forms as strict JSON. Given a user's 
     "primary_color"?: string, "background_color"?: string,
     "header_type"?: "gradient" | "solid" | "none" | "image",
     "card_style"?: "soft_shadow" | "border" | "flat",
-    "button_shape"?: "rounded" | "square" | "pill"
+    "button_shape"?: "rounded" | "square" | "pill",
+    "welcome_title"?: string, "welcome_subtitle"?: string, "welcome_button_label"?: string,
+    "thankyou_title"?: string, "thankyou_button_label"?: string
   }
 }
 
-"options" is required for multiple_choice, checkboxes, and dropdown questions. Colors must be hex strings. Return ONLY the JSON object, nothing else.`
+"title" must summarize the form's purpose in a few words. "options" is required for multiple_choice, checkboxes, and dropdown questions. "section" and "page_break" questions only need a "label" (no options). Colors must be hex strings. Return ONLY the JSON object, nothing else.`
 
 export async function generateFormFromPrompt(prompt: string): Promise<{
+  title: string
+  description?: string
   questions: Omit<Question, 'id'>[]
   design_config: Partial<DesignConfig>
 }> {
@@ -47,6 +53,8 @@ export async function generateFormFromPrompt(prompt: string): Promise<{
   }
 
   return {
+    title: result.data.title,
+    description: result.data.description,
     questions: result.data.questions,
     design_config: result.data.design_config,
   }
