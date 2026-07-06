@@ -19,6 +19,11 @@ export interface Database {
         Insert: Partial<Notification>
         Update: Partial<Notification>
       }
+      ai_usage: {
+        Row: { id: number; user_id: string; date: string; count: number }
+        Insert: { id?: number; user_id: string; date?: string; count?: number }
+        Update: Partial<{ id: number; user_id: string; date: string; count: number }>
+      }
     }
   }
 }
@@ -126,6 +131,8 @@ export interface DesignConfig {
   corner_radius:     'none' | 'small' | 'medium' | 'large' | 'full'
   button_shape:      'rounded' | 'square' | 'pill'
   button_size:       'small' | 'medium' | 'large'
+  button_color?:     string
+  back_button_style: 'outline' | 'solid' | 'text' | 'hidden'
   progress_bar:      boolean
   progress_style:    'line' | 'bar'
   progress_color:    string
@@ -159,12 +166,14 @@ export interface DesignConfig {
   welcome_button_size?: 'small' | 'medium' | 'large'
   welcome_logo_height?: number
   welcome_logo_preset?: string
+  welcome_logo_color?: string
   welcome_container_enabled?: boolean
   welcome_container_bg?: string
   welcome_container_content?: string
   welcome_container_border_color?: string
   welcome_container_border_width?: number
   welcome_container_animation?: 'fade' | 'slide_up' | 'none'
+  welcome_spacing?: 'compact' | 'standard' | 'comfortable' | 'spacious'
   // thank you screen
   thankyou_title?: string
   thankyou_title_color?: string
@@ -174,12 +183,15 @@ export interface DesignConfig {
   thankyou_logo_url?: string
   thankyou_logo_height?: number
   thankyou_logo_preset?: string
+  thankyou_logo_color?: string
+  thankyou_redirect_url?: string
   thankyou_container_enabled?: boolean
   thankyou_container_bg?: string
   thankyou_container_content?: string
   thankyou_container_border_color?: string
   thankyou_container_border_width?: number
   thankyou_container_animation?: 'fade' | 'slide_up' | 'none'
+  thankyou_spacing?: 'compact' | 'standard' | 'comfortable' | 'spacious'
 }
 
 export interface NotificationsConfig {

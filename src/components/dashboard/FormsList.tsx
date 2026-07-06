@@ -1,5 +1,7 @@
+'use client'
+import { useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { Eye, Edit2, BarChart2, FileText } from 'lucide-react'
-import Link from 'next/link'
 import CreateFormButton from '@/components/dashboard/buttons/CreateFormButton'
 import type { DesignConfig } from '@/lib/types'
 import { DEFAULT_DESIGN } from '@/lib/design'
@@ -26,12 +28,24 @@ function fmtDate(iso: string) {
 }
 
 function FormCard({ form, count }: { form: FormRow; count: number }) {
+  const router = useRouter()
+  const [pending, startTransition] = useTransition()
   const d = form.design_config ?? DEFAULT_DESIGN
   const primary = d.primary_color ?? '#7C3AED'
+
+  function navTo(href: string) {
+    startTransition(() => router.push(href))
+  }
+
   return (
-    <div className="bg-white rounded-2xl overflow-hidden hover:shadow-lg transition-all group"
+    <div className="bg-white rounded-2xl overflow-hidden hover:shadow-lg motion-safe:hover:-translate-y-0.5 transition-all group relative"
       style={{ border: `2px solid ${primary}` }}>
-      <Link href={`/builder/${form.id}`} className="block">
+      {pending && (
+        <div className="absolute inset-0 z-10 bg-white/70 flex items-center justify-center">
+          <span className="w-8 h-8 border-[3px] border-slate-200 border-t-violet-600 rounded-full animate-spin" />
+        </div>
+      )}
+      <button type="button" onClick={() => navTo(`/builder/${form.id}`)} className="block w-full text-left cursor-pointer">
         <div className="bg-slate-50 p-5 h-40">
           {form.questions.length === 0 ? (
             <div className="h-full flex items-center justify-center">
@@ -50,22 +64,27 @@ function FormCard({ form, count }: { form: FormRow; count: number }) {
             </div>
           )}
         </div>
-      </Link>
+      </button>
       <div className="px-5 py-4 border-t border-slate-100">
-        <p className="text-base font-bold text-slate-900 truncate mb-0.5">{form.title}</p>
+        <div className="flex items-center gap-2 mb-1">
+          <p className="text-lg font-bold text-slate-900 truncate">{form.title}</p>
+          <span className={`shrink-0 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded-md ${STATUS_CLS[form.status]}`}>
+            {STATUS_LBL[form.status]}
+          </span>
+        </div>
         <div className="flex items-center justify-between gap-2">
           <p className="text-sm text-slate-400">
             {count} response{count !== 1 ? 's' : ''} &bull; {fmtDate(form.updated_at)}
           </p>
           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Link href={`/results/${form.id}`}
-              className="p-1.5 text-slate-400 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition">
+            <button type="button" onClick={() => navTo(`/results/${form.id}`)}
+              className="p-1.5 text-slate-400 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition cursor-pointer">
               <BarChart2 className="w-3.5 h-3.5" />
-            </Link>
-            <Link href={`/builder/${form.id}`}
-              className="p-1.5 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded-lg transition">
+            </button>
+            <button type="button" onClick={() => navTo(`/builder/${form.id}`)}
+              className="p-1.5 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded-lg transition cursor-pointer">
               <Edit2 className="w-3.5 h-3.5" />
-            </Link>
+            </button>
             {form.status === 'active' && (
               <a href={`/form/${form.id}`} target="_blank" rel="noopener noreferrer"
                 className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition">
@@ -83,17 +102,17 @@ export function FormsList({ forms, countMap }: Props) {
   if (forms.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center">
-        <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mb-5">
-          <FileText className="w-8 h-8 text-slate-300" />
+        <div className="w-16 h-16 bg-violet-50 rounded-2xl flex items-center justify-center mb-5">
+          <FileText className="w-8 h-8 text-violet-300" />
         </div>
         <h3 className="font-bold text-slate-900 mb-2">No forms yet</h3>
-        <p className="text-sm text-slate-500 mb-6">Create your first form to start collecting trusted responses.</p>
+        <p className="text-sm text-slate-500 mb-6 max-w-xs">Create your first form to start collecting trusted responses.</p>
         <CreateFormButton />
       </div>
     )
   }
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
       {forms.map(form => <FormCard key={form.id} form={form} count={countMap[form.id] ?? 0} />)}
     </div>
   )

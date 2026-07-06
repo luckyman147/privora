@@ -20,7 +20,7 @@ export function LayoutCenter({ d, set, formId }: { d: DesignConfig; set: (p: Par
       const { error } = await supabase.storage.from('form-backgrounds').upload(path, file, { upsert: true })
       if (error) { setUploadErr(error.message); return }
       const { data: { publicUrl } } = supabase.storage.from('form-backgrounds').getPublicUrl(path)
-      set({ background_image_url: publicUrl })
+      set({ background_image_url: publicUrl, background_type: 'image' })
     } finally { setUploading(false) }
   }
   return (
@@ -153,7 +153,7 @@ export function LayoutCenter({ d, set, formId }: { d: DesignConfig; set: (p: Par
               <h3 className="text-sm font-bold text-slate-800">Background gallery</h3>
               <button onClick={() => setShowGallery(false)} className="w-7 h-7 rounded-full bg-slate-100 text-slate-500 text-sm flex items-center justify-center hover:bg-slate-200 transition">\u2715</button>
             </div>
-            <BackgroundGallery value={d.background_image_url} onChange={url => { set({ background_image_url: url }); setShowGallery(false) }} />
+            <BackgroundGallery value={d.background_image_url} onChange={url => { set({ background_image_url: url, background_type: 'image' }); setShowGallery(false) }} />
           </div>
         </div>
       )}

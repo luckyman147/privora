@@ -3,12 +3,14 @@ import type { DesignConfig, Question } from '@/lib/types'
 interface Props {
   q: Question
   d: DesignConfig
+  answers: Record<string, any>
   onAnswer: (key: string, value: any) => void
 }
 
-export function ShortText({ q, d, onAnswer }: Props) {
+export function ShortText({ q, d, answers, onAnswer }: Props) {
   return (
     <input placeholder={q.placeholder}
+      value={answers[q.id] ?? ''}
       onChange={e => onAnswer(q.id, e.target.value)}
       style={{
         width: '100%', padding: '10px 12px', fontSize: 14,

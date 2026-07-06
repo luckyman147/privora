@@ -3,12 +3,13 @@ import type { DesignConfig, Question } from '@/lib/types'
 interface Props {
   q: Question
   d: DesignConfig
+  answers: Record<string, any>
   onAnswer: (key: string, value: any) => void
 }
 
-export function Dropdown({ q, d, onAnswer }: Props) {
+export function Dropdown({ q, d, answers, onAnswer }: Props) {
   return (
-    <select onChange={e => onAnswer(q.id, e.target.value)}
+    <select value={answers[q.id] ?? ''} onChange={e => onAnswer(q.id, e.target.value)}
       style={{
         width: '100%', padding: '10px 12px', fontSize: 14,
         border: '1.5px solid #e2e8f0', borderRadius: '6px',

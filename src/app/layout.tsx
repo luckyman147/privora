@@ -11,8 +11,13 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Privora — Privacy-first forms',
+    default: 'Privora ',
     template: '%s · Privora',
+  },
+  icons: {
+    icon: '/icon.ico',
+    shortcut: '/icon.ico',
+    apple: '/icon.ico',
   },
   description: 'Collect trusted surveys and anonymous elections with a built-in Trust Score.',
   keywords: ['survey', 'election', 'privacy', 'forms', 'student organizations'],

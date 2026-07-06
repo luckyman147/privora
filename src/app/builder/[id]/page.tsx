@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, Suspense, lazy } from 'react'
 import { useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/browser'
 import { saveForm, publishForm, unpublishForm } from '../actions'
@@ -9,11 +9,21 @@ import { CHOICE_TYPES, TYPE_META } from '@/components/builder/meta'
 import { BuilderTopBar } from '@/components/builder/topbar/BuilderTopBar'
 import { BuilderLeftPanel } from '@/components/builder/left/BuilderLeftPanel'
 import { BuilderCanvas } from '@/components/builder/canvas/BuilderCanvas'
-import { BuilderDesign, DEFAULT_DESIGN } from '@/components/builder/design'
-import { BuilderSettings } from '@/components/builder/settings/BuilderSettings'
-import { BuilderShare } from '@/components/builder/share/BuilderShare'
-import { BuilderResults } from '@/components/builder/results/BuilderResults'
+import { DEFAULT_DESIGN } from '@/lib/design'
 import type { Form, Question, QuestionType, TrustConfig, DesignConfig } from '@/lib/types'
+
+// Non-default tabs are code-split via React.lazy (not next/dynamic, which triggers a
+// _document page-collection bug on this Next version): each pulls in a heavy, independent
+// subtree (the Design tab alone is 1500+ lines of panels) that a Build-tab visit never needs.
+const TAB_LOADING = (
+  <div className="flex-1 flex items-center justify-center">
+    <div className="w-6 h-6 border-2 border-sky-500 border-t-transparent rounded-full animate-spin" />
+  </div>
+)
+const BuilderDesign = lazy(() => import('@/components/builder/design/BuilderDesign').then(m => ({ default: m.BuilderDesign })))
+const BuilderSettings = lazy(() => import('@/components/builder/settings/BuilderSettings').then(m => ({ default: m.BuilderSettings })))
+const BuilderShare = lazy(() => import('@/components/builder/share/BuilderShare').then(m => ({ default: m.BuilderShare })))
+const BuilderResults = lazy(() => import('@/components/builder/results/BuilderResults').then(m => ({ default: m.BuilderResults })))
 
 const MIN_W = 200, MAX_W = 520
 
@@ -66,8 +76,14 @@ export default function BuilderPage() {
     // always reads latest form from ref — never captures a stale snapshot
     saveTimer.current = setTimeout(async () => {
       if (!formRef.current) return
-      try { await saveForm(formRef.current) }
-      catch { /* silent; user can still hit Save */ }
+      try {
+        const savedTitle = await saveForm(formRef.current)
+        if (savedTitle !== formRef.current.title) {
+          formRef.current = { ...formRef.current!, title: savedTitle }
+          setForm(formRef.current)
+        }
+      }
+      catch (e) { console.warn('auto-save failed', e) }
     }, 1200)
   }
 
@@ -128,6 +144,16 @@ export default function BuilderPage() {
     patchForm(f => ({ ...f, questions: qs }))
   }
 
+  function addPageBreakAt(afterIndex: number) {
+    const section = { id: newQuestionId(), type: 'section' as const, required: false, label: 'New Section' }
+    const pageBreak = { id: newQuestionId(), type: 'page_break' as const, required: false, label: 'Page Break' }
+    patchForm(f => {
+      const qs = [...f.questions]
+      qs.splice(afterIndex + 1, 0, pageBreak, section)
+      return { ...f, questions: qs }
+    })
+  }
+
   function moveQuestion(id: string, dir: -1 | 1) {
     patchForm(f => {
       const qs  = [...f.questions]
@@ -142,6 +168,17 @@ export default function BuilderPage() {
   function applyTemplate(questions: Omit<Question, 'id'>[]) {
     patchForm(f => ({ ...f, questions: questions.map(q => ({ ...q, id: newQuestionId() })) }))
     toast.success('Template applied')
+  }
+
+  function applyGenerated(questions: Omit<Question, 'id'>[], design: Partial<DesignConfig>, title: string, description?: string) {
+    patchForm(f => ({
+      ...f,
+      title,
+      description,
+      questions: questions.map(q => ({ ...q, id: newQuestionId() })),
+      design_config: { ...(f.design_config ?? DEFAULT_DESIGN), ...design },
+    }))
+    toast.success('AI form applied')
   }
 
   // ── sidebar resize ──────────────────────────────────────────────────────────
@@ -213,20 +250,22 @@ export default function BuilderPage() {
         onPreview={handlePreview} />
 
       {activeTab === 'Design' ? (
-        <BuilderDesign
-          form={form} design={design}
-          onUpdate={d => patchForm(f => ({ ...f, design_config: d }))}
-          onFormPatch={patchForm} />
+        <Suspense fallback={TAB_LOADING}>
+          <BuilderDesign
+            form={form} design={design}
+            onUpdate={d => patchForm(f => ({ ...f, design_config: d }))}
+            onFormPatch={patchForm} />
+        </Suspense>
       ) : activeTab === 'Settings' ? (
-        <BuilderSettings form={form} onPatch={patchForm} />
+        <Suspense fallback={TAB_LOADING}><BuilderSettings form={form} onPatch={patchForm} /></Suspense>
       ) : activeTab === 'Share' ? (
-        <BuilderShare form={form} />
+        <Suspense fallback={TAB_LOADING}><BuilderShare form={form} /></Suspense>
       ) : activeTab === 'Results' ? (
-        <BuilderResults form={form} />
+        <Suspense fallback={TAB_LOADING}><BuilderResults form={form} /></Suspense>
       ) : (
         <div className="flex flex-1 overflow-hidden select-none">
           <BuilderLeftPanel style={{ width: sidebarW, minWidth: sidebarW }}
-            onAddQuestion={addQuestion} onApplyTemplate={applyTemplate} />
+            onAddQuestion={addQuestion} onApplyTemplate={applyTemplate} onApplyGenerated={applyGenerated} />
           <div onMouseDown={startResize}
             className="w-1 hover:w-1.5 bg-slate-200 hover:bg-sky-400 cursor-col-resize shrink-0 transition-all duration-100" />
           <BuilderCanvas
@@ -243,7 +282,7 @@ export default function BuilderPage() {
             onAdd={addQuestion} onDelete={deleteQuestion}
             onCopy={copyQuestion} onMove={moveQuestion}
             onReorder={qs => patchForm(f => ({ ...f, questions: qs }))}
-            onUpdate={updateQuestion} />
+            onUpdate={updateQuestion} onAddPageBreakAt={addPageBreakAt} />
         </div>
       )}
     </div>

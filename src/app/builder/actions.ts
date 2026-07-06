@@ -6,21 +6,28 @@ import type { Form } from '@/lib/types'
 export async function saveForm(form: Form) {
   const user = await requireAuth()
   const supabase = await getSupabase()
+  const { data: sameName } = await (supabase as any)
+    .from('forms').select('id').eq('owner_id', user.id).eq('title', form.title).neq('id', form.id).maybeSingle()
+  const title = sameName ? `${form.title} (2)` : form.title
   const { error } = await (supabase as any).from('forms').update({
-    title:         form.title,
+    title,
     description:   form.description ?? null,
     status:        form.status,
     language:      form.language ?? null,
     opens_at:      form.opens_at  ?? null,
     closes_at:     form.closes_at ?? null,
-    trust_config:  form.trust_config,
-    design_config: form.design_config ?? null,
-    questions:     form.questions,
+    trust_config:        form.trust_config,
+    design_config:       form.design_config ?? null,
+    notifications_config: form.notifications_config ?? null,
+    responses_config:    form.responses_config ?? null,
+    integrations_config: form.integrations_config ?? null,
+    questions:           form.questions,
     updated_at:    new Date().toISOString(),
   }).eq('id', form.id).eq('owner_id', user.id)
   if (error) throw error
   revalidatePath(`/builder/${form.id}`)
   revalidatePath(`/form/${form.id}`)
+  return title
 }
 
 export async function publishForm(formId: string) {

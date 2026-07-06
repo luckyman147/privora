@@ -27,7 +27,7 @@ function findMissing(form: Form, answers: Record<string, any>, allQuestions?: Fo
 }
 
 export function useFormSubmit(form: Form | null, answers: Record<string, any>,
-  onSubmitted: () => void, setUploading: (v: boolean) => void) {
+  onSubmitted: () => void, setUploading: (v: boolean) => void, onError?: () => void) {
 
   function handleNext(currentPageQs: any[], nextPage: () => void) {
     const missing = findMissing({ ...form!, questions: currentPageQs }, answers)
@@ -71,6 +71,7 @@ export function useFormSubmit(form: Form | null, answers: Record<string, any>,
             if (uploadErr) {
               toast.error(`File upload failed: ${uploadErr.message}`, TOAST_ERROR)
               setUploading(false)
+              onError?.()
               return
             }
             const { data: { publicUrl } } = supabase.storage.from('response-uploads').getPublicUrl(path)
@@ -88,7 +89,7 @@ export function useFormSubmit(form: Form | null, answers: Record<string, any>,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ answers: processedAnswers, submission_token: token }),
     })
-    if (!res.ok) { const err = await res.json(); toast.error(err.error, TOAST_ERROR); return }
+    if (!res.ok) { const err = await res.json(); toast.error(err.error, TOAST_ERROR); onError?.(); return }
     toast.success('Response submitted!', TOAST_SUCCESS)
     onSubmitted()
   }

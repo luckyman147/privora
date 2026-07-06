@@ -5,7 +5,7 @@ export const DEFAULT_DESIGN: DesignConfig = {
   heading_font: 'Poppins', body_font: 'Inter', base_size: '16px',
   header_type: 'gradient', header_height: 'medium',
   card_style: 'soft_shadow', corner_radius: 'large',
-  button_shape: 'rounded', button_size: 'medium',
+  button_shape: 'rounded', button_size: 'medium', button_color: '#7C3AED', back_button_style: 'outline',
   progress_bar: true, progress_style: 'line', progress_color: '#7C3AED',
   animations: true, page_transition: 'fade', element_animation: 'slide_up',
   form_width: 'medium', page_padding: 'large', question_spacing: 'comfortable', question_layout: 'cards',

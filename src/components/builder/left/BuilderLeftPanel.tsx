@@ -2,7 +2,8 @@
 import { useState } from 'react'
 import { SIDEBAR_TYPES, TYPE_META } from '../meta'
 import { TemplateTab } from './TemplateTab'
-import type { QuestionType, Question } from '@/lib/types'
+import { AIGeneratorPanel } from './ai/AIGeneratorPanel'
+import type { QuestionType, Question, DesignConfig } from '@/lib/types'
 
 const QUICK_ADD = [
   { label: 'Add Welcome screen', key: 'welcome', shortcut: null },
@@ -11,13 +12,14 @@ const QUICK_ADD = [
 ]
 
 interface Props {
-  style?:           React.CSSProperties
-  onAddQuestion:    (type: QuestionType) => void
-  onApplyTemplate:  (questions: Omit<Question, 'id'>[]) => void
-  currentQuestions?: Question[]
+  style?:             React.CSSProperties
+  onAddQuestion:      (type: QuestionType) => void
+  onApplyTemplate:    (questions: Omit<Question, 'id'>[]) => void
+  onApplyGenerated:   (questions: Omit<Question, 'id'>[], design: Partial<DesignConfig>, title: string, description?: string) => void
+  currentQuestions?:  Question[]
 }
 
-export function BuilderLeftPanel({ style, onAddQuestion, onApplyTemplate, currentQuestions = [] }: Props) {
+export function BuilderLeftPanel({ style, onAddQuestion, onApplyTemplate, onApplyGenerated, currentQuestions = [] }: Props) {
   const [tab, setTab] = useState(0)
 
   return (
@@ -75,19 +77,7 @@ export function BuilderLeftPanel({ style, onAddQuestion, onApplyTemplate, curren
         )}
 
         {tab === 2 && (
-          <div className="p-6 flex flex-col items-center text-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-violet-100 text-violet-600 flex items-center justify-center text-2xl">✦</div>
-            <div>
-              <p className="text-sm font-semibold text-slate-900 mb-1">AI Form Generator</p>
-              <p className="text-xs text-slate-500">Describe what you want to survey and we&apos;ll build it for you.</p>
-            </div>
-            <textarea placeholder="e.g. A 5-question satisfaction survey for a university course…" rows={4}
-              className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-violet-400 resize-none" />
-            <button className="w-full py-2.5 bg-violet-500 hover:bg-violet-600 text-white text-sm font-semibold rounded-xl transition">
-              Generate form
-            </button>
-            <p className="text-[10px] text-slate-400">AI generation coming soon — stay tuned.</p>
-          </div>
+          <AIGeneratorPanel onApplyGenerated={onApplyGenerated} />
         )}
       </div>
     </aside>

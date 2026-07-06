@@ -2,12 +2,13 @@
 import { useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/browser'
 import type { DesignConfig } from '@/lib/types'
-import { ColorInput, BgUpload, ImgPreview, Tog, PresetIcons } from '../../primitives'
+import { ColorInput, BgUpload, ImgPreview, Tog, PresetIcons, LOGO_PRESETS } from '../../primitives'
 export function WelcomeConfig({ design, formId, onDesignPatch }: {
   design: DesignConfig; formId: string; onDesignPatch: (p: Partial<DesignConfig>) => void
 }) {
   const [uploading, setUploading] = useState(false); const [uploadErr, setUploadErr] = useState('')
   const [logoMode, setLogoMode] = useState<'upload' | 'preset'>(design.welcome_logo_preset && !design.welcome_logo_url ? 'preset' : 'upload')
+  const [showPresets, setShowPresets] = useState(false)
   const logoRef = useRef<HTMLInputElement>(null)
   async function handleLogoUpload(file: File) {
     setUploading(true); setUploadErr('')
@@ -68,9 +69,19 @@ export function WelcomeConfig({ design, formId, onDesignPatch }: {
             </label>
             {uploadErr && <p className="text-xs text-red-500 mt-1">{uploadErr}</p>}</>
         ) : (
-          <PresetIcons value={design.welcome_logo_preset} onChange={id => onDesignPatch({ welcome_logo_preset: id || '' })} color={design.primary_color} />
-        )}
-      </div>
+          <div>
+            {!!design.welcome_logo_preset && <div className="flex items-center gap-3 mb-2">
+              {LOGO_PRESETS.find(x => x.id === design.welcome_logo_preset)?.render(design.welcome_logo_color || design.primary_color, 32)}
+              <button onClick={() => setShowPresets(true)} className="text-xs font-semibold text-violet-600 hover:text-violet-700">Change</button>
+              <button onClick={() => onDesignPatch({ welcome_logo_preset: '' })} className="text-xs text-slate-400 hover:text-slate-600">Remove</button>
+            </div>}
+            {!design.welcome_logo_preset && <button onClick={() => setShowPresets(true)}
+              className="w-full text-xs font-semibold py-2 rounded-lg border-2 border-dashed border-slate-300 text-slate-500 hover:border-violet-400 hover:text-violet-600 hover:bg-violet-50/30 transition mb-2">
+              Choose icon
+            </button>}
+            {showPresets && <PresetIcons value={design.welcome_logo_preset} onChange={id => onDesignPatch({ welcome_logo_preset: id || '' })} color={design.welcome_logo_color || design.primary_color} onClose={() => setShowPresets(false)} />}
+          </div>)}</div>
+      <ColorInput label="Logo color" value={design.welcome_logo_color || design.primary_color} onChange={v => onDesignPatch({ welcome_logo_color: v })} />
       <div>
         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Logo height (px)</label>
         <input type="number" min={24} max={200} value={design.welcome_logo_height ?? 56}

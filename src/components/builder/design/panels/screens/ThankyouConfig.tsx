@@ -2,7 +2,7 @@
 import { useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/browser'
 import type { Form, DesignConfig } from '@/lib/types'
-import { Tog, Row, ColorInput, BgUpload, ImgPreview, PresetIcons } from '../../primitives'
+import { Tog, Row, ColorInput, BgUpload, ImgPreview, PresetIcons, LOGO_PRESETS } from '../../primitives'
 
 export function ThankyouConfig({ design, form, onFormPatch, onDesignPatch }: {
   design: DesignConfig; form: Form
@@ -11,6 +11,7 @@ export function ThankyouConfig({ design, form, onFormPatch, onDesignPatch }: {
 }) {
   const [uploading, setUploading] = useState(false)
   const [logoMode, setLogoMode] = useState<'upload' | 'preset'>(design.thankyou_logo_preset && !design.thankyou_logo_url ? 'preset' : 'upload')
+  const [showPresets, setShowPresets] = useState(false)
   const logoRef = useRef<HTMLInputElement>(null)
   async function handleLogoUpload(file: File) {
     setUploading(true)
@@ -60,9 +61,19 @@ export function ThankyouConfig({ design, form, onFormPatch, onDesignPatch }: {
               <input ref={logoRef} type="file" accept="image/jpeg,image/png,image/webp,image/svg+xml" className="sr-only" onChange={e => e.target.files?.[0] && handleLogoUpload(e.target.files[0])} />
             </label></>
         ) : (
-          <PresetIcons value={design.thankyou_logo_preset} onChange={id => onDesignPatch({ thankyou_logo_preset: id || '' })} color={design.primary_color} />
-        )}
-      </div>
+          <div>
+            {!!design.thankyou_logo_preset && <div className="flex items-center gap-3 mb-2">
+              {LOGO_PRESETS.find(x => x.id === design.thankyou_logo_preset)?.render(design.thankyou_logo_color || design.primary_color, 32)}
+              <button onClick={() => setShowPresets(true)} className="text-xs font-semibold text-violet-600 hover:text-violet-700">Change</button>
+              <button onClick={() => onDesignPatch({ thankyou_logo_preset: '' })} className="text-xs text-slate-400 hover:text-slate-600">Remove</button>
+            </div>}
+            {!design.thankyou_logo_preset && <button onClick={() => setShowPresets(true)}
+              className="w-full text-xs font-semibold py-2 rounded-lg border-2 border-dashed border-slate-300 text-slate-500 hover:border-violet-400 hover:text-violet-600 hover:bg-violet-50/30 transition mb-2">
+              Choose icon
+            </button>}
+            {showPresets && <PresetIcons value={design.thankyou_logo_preset} onChange={id => onDesignPatch({ thankyou_logo_preset: id || '' })} color={design.thankyou_logo_color || design.primary_color} onClose={() => setShowPresets(false)} />}
+          </div>)}</div>
+      <ColorInput label="Logo color" value={design.thankyou_logo_color || design.primary_color} onChange={v => onDesignPatch({ thankyou_logo_color: v })} />
       <div>
         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Logo height (px)</label>
         <input type="number" min={24} max={200} value={design.thankyou_logo_height ?? 56}

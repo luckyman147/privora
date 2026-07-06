@@ -107,4 +107,13 @@ export function ImgPreview({ url, onRemove }: { url: string; onRemove: () => voi
 
 export { LOGO_PRESETS, renderLogo, PresetIcons } from './presets'
 
+export function screenGap(s?: 'compact' | 'standard' | 'comfortable' | 'spacious') {
+  switch (s) {
+    case 'compact': return 8
+    case 'comfortable': return 24
+    case 'spacious': return 32
+    default: return 16
+  }
+}
+
 export const animKF = `@keyframes spin { to { transform: rotate(360deg); } } @keyframes wfade { from { opacity: 0; } to { opacity: 1; } } @keyframes wslide { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } } @keyframes tfade { from { opacity: 0; } to { opacity: 1; } } @keyframes tslide { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } } @keyframes pfade { from { opacity: 0; } to { opacity: 1; } } @keyframes pslide { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }`

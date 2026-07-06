@@ -13,6 +13,7 @@ export function Checkboxes({ q, d, answers, onAnswer }: Props) {
       {q.options?.map(opt => (
         <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', fontSize: 14, color: '#334155', cursor: 'pointer' }}>
           <input type="checkbox" value={opt}
+            checked={(answers[q.id] as string[] | undefined)?.includes(opt) ?? false}
             onChange={e => {
               const cur = (answers[q.id] as string[]) ?? []
               const next = e.target.checked ? [...cur, opt] : cur.filter(v => v !== opt)

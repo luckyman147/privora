@@ -1,9 +1,11 @@
+import { Eye, User, MapPin, Repeat, Calendar } from 'lucide-react'
+
 const ITEMS = [
-  { label: 'Visibility', value: 'Creator only', emoji: '👁' },
-  { label: 'Identity', value: 'Anonymous', emoji: '👤' },
-  { label: 'IP Address', value: 'Not stored', emoji: '📍' },
-  { label: 'Submissions', value: '1 per person', emoji: '🔄' },
-  { label: 'Data retention', value: '90 days', emoji: '📅' },
+  { label: 'Visibility', value: 'Creator only', Icon: Eye },
+  { label: 'Identity', value: 'Anonymous', Icon: User },
+  { label: 'IP Address', value: 'Not stored', Icon: MapPin },
+  { label: 'Submissions', value: '1 per person', Icon: Repeat },
+  { label: 'Data retention', value: '90 days', Icon: Calendar },
 ]
 
 export default function TrustScorePreview() {
@@ -31,7 +33,9 @@ export default function TrustScorePreview() {
           {ITEMS.map((item, i) => (
             <div key={i} className='flex items-center justify-between'>
               <div className='flex items-center gap-2'>
-                <div className='w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0 text-xs'>{item.emoji}</div>
+                <div className='w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0'>
+                  <item.Icon className='w-3 h-3 text-slate-500' />
+                </div>
                 <span className='text-xs text-slate-600'>{item.label}</span>
               </div>
               <div className='flex items-center gap-2'>

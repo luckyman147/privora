@@ -127,7 +127,7 @@ export function BuilderDesign({ form, design, onUpdate, onFormPatch }: Props) {
       </aside>
 
       {subTab === 'templates' ? <DesignTemplates d={design} set={set} /> :
-       subTab === 'themes' ? <ThemesCenter d={design} set={set} formId={form.id} /> :
+       subTab === 'themes' ? <ThemesCenter d={design} set={set} formId={form.id} hasPageBreaks={form.questions.some(q => q.type === 'page_break')} /> :
        subTab === 'layout' ? <LayoutCenter d={design} set={set} formId={form.id} /> :
        subTab === 'welcome' ? <WelcomeConfig design={design} formId={form.id} onDesignPatch={set} /> :
        subTab === 'thankyou' && onFormPatch ?

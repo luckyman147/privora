@@ -1,7 +1,9 @@
+import { Star, Landmark, GraduationCap } from 'lucide-react'
+
 export default function UseCases() {
   const cases = [
     {
-      icon: '⭐',
+      Icon: Star,
       title: 'Student Clubs',
       desc: 'Run elections, collect event feedback, and survey members with full transparency about how their data is handled.',
       tags: [
@@ -11,7 +13,7 @@ export default function UseCases() {
       ],
     },
     {
-      icon: '🏛️',
+      Icon: Landmark,
       title: 'Student Government',
       desc: 'Conduct anonymous votes and referendums with audit-ready results your whole campus community can verify.',
       tags: [
@@ -20,7 +22,7 @@ export default function UseCases() {
       ],
     },
     {
-      icon: '🎓',
+      Icon: GraduationCap,
       title: 'Universities',
       desc: 'Run course evaluations, department surveys, and institutional research with FERPA-aligned privacy defaults built in.',
       tags: [
@@ -52,7 +54,9 @@ export default function UseCases() {
               key={i}
               className='bg-white border border-slate-200 rounded-2xl p-7 hover:border-sky-500 hover:shadow-md transition'
             >
-              <div className='text-4xl mb-4'>{uc.icon}</div>
+              <div className='w-11 h-11 rounded-xl bg-sky-50 flex items-center justify-center mb-4'>
+                <uc.Icon className='w-5 h-5 text-sky-600' />
+              </div>
               <h3 className='text-xl font-700 text-slate-900 mb-2'>
                 {uc.title}
               </h3>
