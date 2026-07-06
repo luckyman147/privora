@@ -60,8 +60,11 @@ async function checkRateLimit(userId: string) {
     .eq('date', today)
     .maybeSingle() as any) as { data: { count: number } | null }
   const count = data?.count ?? 0
-  if (count >= MAX_DAILY)
-    throw new Error(`Daily AI generation limit reached (${MAX_DAILY}/${MAX_DAILY}). Please try again tomorrow.`)
+  if (count >= MAX_DAILY) {
+    const reset = new Date(); reset.setDate(reset.getDate() + 1); reset.setHours(0, 0, 0, 0)
+    const hours = Math.ceil((reset.getTime() - Date.now()) / 3_600_000)
+    throw new Error(`Daily AI generation limit reached (${MAX_DAILY}/${MAX_DAILY}). Resets in ~${hours}h`)
+  }
   return { supabase, today, count }
 }
 
