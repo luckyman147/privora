@@ -66,6 +66,22 @@ describe('generatedFormSchema', () => {
     expect(result.success).toBe(true)
   })
 
+  it('defaults required to false when the model omits it (e.g. section headers)', () => {
+    const result = generatedFormSchema.safeParse({
+      title: 'Board Evaluation',
+      questions: [
+        { type: 'section', label: 'Leadership Effectiveness' },
+        { type: 'long_text', label: 'Any other comments?' },
+      ],
+      design_config: {},
+    })
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.questions[0].required).toBe(false)
+      expect(result.data.questions[1].required).toBe(false)
+    }
+  })
+
   it('accepts welcome/thankyou copy fields', () => {
     const result = generatedFormSchema.safeParse({
       title: 'Course Feedback',

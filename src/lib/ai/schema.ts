@@ -10,7 +10,7 @@ export const generatedQuestionSchema = z.object({
   type:        z.enum(GENERATED_QUESTION_TYPES),
   label:       z.string().min(1),
   description: z.string().optional(),
-  required:    z.boolean(),
+  required:    z.boolean().default(false),
   placeholder: z.string().optional(),
   options:     z.array(z.string()).optional(),
   max_rating:  z.number().optional(),
