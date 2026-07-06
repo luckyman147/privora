@@ -89,3 +89,23 @@ All errors are non-fatal to the builder — the existing draft is never touched 
 - Unit tests for `schema.ts`: valid payload passes, invalid `QuestionType` fails, missing required fields fails.
 - Manual verification in-browser: loading state, error state (current placeholder key will 401), preview render, apply-merges-into-draft, discard-returns-to-input.
 - Full generate → preview → apply happy path is verified once the real Hugging Face key is confirmed working (key is already in `.env`; first real test will confirm success end-to-end).
+
+## Extension: title, description, welcome/thank-you copy, section & page break
+
+Approved follow-up to the base feature above — same architecture, wider output surface.
+
+### Schema (`src/lib/ai/schema.ts`)
+- `GENERATED_QUESTION_TYPES` gains `section` and `page_break`. Both only need `type`, `label`, `required` (matching `addQuestion`'s defaults in `src/app/builder/[id]/page.tsx:107-118`) — no new fields required.
+- `generatedDesignSchema` gains 5 optional strings: `welcome_title`, `welcome_subtitle`, `welcome_button_label`, `thankyou_title`, `thankyou_button_label`. Visual/layout welcome-thankyou fields (colors, logos, containers) stay out of scope — the existing `theme`/`primary_color` fields already cover overall theming.
+- `generatedFormSchema` gains a required `title: z.string().min(1)` and optional `description: z.string().optional()` as top-level siblings of `questions`/`design_config`. A missing title is a validation failure, same treatment as a missing question label.
+
+### Server action (`ai-actions.ts`)
+- `SYSTEM_PROMPT` updated to request `title`, `description`, the 5 new design fields, and to explain that `section`/`page_break` are structural entries needing only a `label` (no `options`).
+- Return type becomes `{ title: string, description?: string, questions: Omit<Question,'id'>[], design_config: Partial<DesignConfig> }`.
+
+### UI
+- `GeneratedPreview`: renders the generated title + description above the question list; `TYPE_LABELS` gains `section: 'Section'` and `page_break: 'Page break'`.
+- `AIGeneratorPanel`: threads `title`/`description` through to `onApplyGenerated` alongside the existing `questions`/`design_config` args.
+
+### Apply flow (`page.tsx`)
+- `applyGenerated(questions, design, title, description)` — always overwrites `title` and `description` on Apply, matching the existing all-or-nothing replace semantics for questions/design (confirmed with user: no "only fill if empty" branch).
