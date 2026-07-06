@@ -144,6 +144,16 @@ export default function BuilderPage() {
     patchForm(f => ({ ...f, questions: qs }))
   }
 
+  function addPageBreakAt(afterIndex: number) {
+    const section = { id: newQuestionId(), type: 'section' as const, required: false, label: 'New Section' }
+    const pageBreak = { id: newQuestionId(), type: 'page_break' as const, required: false, label: 'Page Break' }
+    patchForm(f => {
+      const qs = [...f.questions]
+      qs.splice(afterIndex + 1, 0, pageBreak, section)
+      return { ...f, questions: qs }
+    })
+  }
+
   function moveQuestion(id: string, dir: -1 | 1) {
     patchForm(f => {
       const qs  = [...f.questions]
@@ -272,7 +282,7 @@ export default function BuilderPage() {
             onAdd={addQuestion} onDelete={deleteQuestion}
             onCopy={copyQuestion} onMove={moveQuestion}
             onReorder={qs => patchForm(f => ({ ...f, questions: qs }))}
-            onUpdate={updateQuestion} />
+            onUpdate={updateQuestion} onAddPageBreakAt={addPageBreakAt} />
         </div>
       )}
     </div>

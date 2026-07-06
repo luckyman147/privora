@@ -21,6 +21,18 @@ export async function POST(
     if (!form) {
       return NextResponse.json({ error: 'Form not available' }, { status: 404 })
     }
+    const now = new Date()
+    if (form.opens_at && new Date(form.opens_at) > now)
+      return NextResponse.json({ error: 'Form not yet open' }, { status: 403 })
+    if (form.closes_at && new Date(form.closes_at) < now)
+      return NextResponse.json({ error: 'Form is closed' }, { status: 403 })
+    const rc = form.responses_config
+    if (rc?.max_total_responses != null && rc.auto_close) {
+      const { count } = await (supabase as any)
+        .from('responses').select('*', { count: 'exact', head: true }).eq('form_id', formId)
+      if ((count ?? 0) >= rc.max_total_responses)
+        return NextResponse.json({ error: 'Form is closed' }, { status: 403 })
+    }
     if (form.status !== 'active') {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user || user.id !== form.owner_id) {

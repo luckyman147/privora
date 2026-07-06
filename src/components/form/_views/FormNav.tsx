@@ -16,6 +16,7 @@ export function FormNav({ d, currentPage, totalPages, submitting, uploading, onB
   const isLastPage = currentPage >= totalPages - 1
   const disabled = submitting || uploading
 
+  const btnColor = d.button_color || d.primary_color
   const btnBase: React.CSSProperties = {
     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, flex: 1,
     padding: BTN_PADDING[d.button_size],
@@ -26,12 +27,15 @@ export function FormNav({ d, currentPage, totalPages, submitting, uploading, onB
 
   return (
     <div style={{ display: 'flex', gap: 12, marginTop: 28 }}>
-      {currentPage > 0 && (
+      {currentPage > 0 && d.back_button_style !== 'hidden' && (
         <button type="button" onClick={onBack}
           style={{
-            ...btnBase, flex: undefined,
-            background: 'transparent', color: d.primary_color,
-            border: `2px solid ${hexToRgba(d.primary_color, 0.35)}`, cursor: 'pointer',
+            ...btnBase, flex: undefined, cursor: 'pointer',
+            ...(d.back_button_style === 'solid'
+              ? { background: btnColor, color: '#fff', border: 'none' }
+              : d.back_button_style === 'text'
+              ? { background: 'transparent', color: btnColor, border: 'none' }
+              : { background: 'transparent', color: btnColor, border: `2px solid ${hexToRgba(btnColor, 0.35)}` }),
           }}>
           ← Back
         </button>
@@ -39,14 +43,14 @@ export function FormNav({ d, currentPage, totalPages, submitting, uploading, onB
       {!isLastPage ? (
         <button type="button" onClick={onNext}
           style={{
-            ...btnBase, background: d.primary_color, color: '#fff', border: 'none', cursor: 'pointer',
+            ...btnBase, background: btnColor, color: '#fff', border: 'none', cursor: 'pointer',
           }}>
           Next →
         </button>
       ) : (
         <button type="button" onClick={onSubmit} disabled={disabled}
           style={{
-            ...btnBase, background: d.primary_color, color: '#fff', border: 'none',
+            ...btnBase, background: btnColor, color: '#fff', border: 'none',
             cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.75 : 1,
             transition: 'opacity 0.15s',
           }}>

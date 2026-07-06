@@ -4,6 +4,7 @@ import { useParams, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/browser'
 import { resolveDesign, WIDTHS, PADDING, resolveQContainer } from '@/components/form/design'
 import { useFormSubmit } from '@/components/form/useFormSubmit'
+import { useFormDraft } from '@/components/form/_hooks/useFormDraft'
 import { LoadingScreen } from '@/components/form/_screens/LoadingScreen'
 import { WelcomeScreen } from '@/components/form/_screens/WelcomeScreen'
 import { SubmittedScreen } from '@/components/form/_screens/SubmittedScreen'
@@ -25,6 +26,7 @@ export default function FormViewPage() {
   const cacheKey = searchParams?.get('_t') ?? ''
 
   const [form, setForm] = useState<Form | null>(null)
+  const [closedMsg, setClosedMsg] = useState<string | null>(null)
   const [answers, setAnswers] = useState<Record<string, any>>({})
   const [submitted, setSubmitted] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -36,7 +38,14 @@ export default function FormViewPage() {
     if (!formId) return
     ;(createClient() as any).from('forms').select('*').eq('id', formId).single()
       .then(({ data }: any) => {
-        if (data) setForm(data as Form)
+        if (!data) return
+        const f = data as Form
+        setForm(f)
+        const now = new Date()
+        if (f.opens_at && new Date(f.opens_at) > now)
+          setClosedMsg("This form isn't open yet. Please check back later.")
+        else if (f.closes_at && new Date(f.closes_at) < now)
+          setClosedMsg('This form is no longer accepting responses.')
       })
   }, [formId, cacheKey])
 
@@ -55,15 +64,17 @@ export default function FormViewPage() {
     link.href = `https://fonts.googleapis.com/css2?${fonts.map(f => `family=${f.replace(/ /g, '+')}:wght@400;600;700`).join('&')}&display=swap`
   }, [form])
 
+  const { clearDraft } = useFormDraft(formId, answers, setAnswers)
+
   const handleAnswer = (key: string, value: any) =>
     setAnswers(prev => ({ ...prev, [key]: value }))
 
   const { handleNext, handleSubmit } = useFormSubmit(
-    form, answers, () => setSubmitted(true), setUploading)
+    form, answers, () => { setSubmitted(true); clearDraft() }, setUploading, () => setSubmitting(false))
 
   if (!form) return <LoadingScreen />
-
   const d = resolveDesign(form)
+  if (closedMsg) return <SubmittedScreen d={d} title="Form unavailable" message={closedMsg} />
 
   const pages = (() => {
     const result: (typeof form.questions[0])[][] = []
@@ -125,15 +136,23 @@ export default function FormViewPage() {
 
         <PageIndicator d={d} pages={pages} currentPage={currentPage} />
 
-        <div style={resolveQContainer(d)}>
+        <div style={{
+          ...resolveQContainer(d),
+          ...(d.animations && d.page_transition !== 'none'
+            ? { animation: `${d.page_transition === 'slide' ? 'pslide' : 'pfade'} 0.35s ease-out` }
+            : {}),
+        }} key={currentPage}>
           {currentPage === 0 && (
             <IdentityFields identity={form.trust_config.identity}
               answers={answers} d={d} onAnswer={handleAnswer} />
           )}
-          {currentPageQs.filter(q => isQuestionVisible(q, answers, form.questions)).map(q => {
+          {currentPageQs.filter(q => isQuestionVisible(q, answers, form.questions)).map((q, idx) => {
+            const elAnim: React.CSSProperties = d.animations && d.element_animation !== 'none'
+              ? { animation: `${d.element_animation === 'slide_up' ? 'wslide' : 'wfade'} 0.3s ease-out ${idx * 0.06}s both` }
+              : {}
             if (q.type === 'section') {
               return (
-                <div key={q.id} style={{ paddingTop: 8 }}>
+                <div key={q.id} style={{ paddingTop: 8, ...elAnim }}>
                   <h2 style={{ fontSize: 15, fontWeight: 700, color: '#1e293b', fontFamily: d.heading_font, marginBottom: 2 }}>
                     {q.label}
                   </h2>
@@ -142,9 +161,11 @@ export default function FormViewPage() {
               )
             }
             return (
-              <QuestionCard key={q.id} q={q} index={absoluteIndex[q.id]} d={d}>
-                <QuestionRenderer q={q} d={d} answers={answers} onAnswer={handleAnswer} />
-              </QuestionCard>
+              <div key={q.id} style={elAnim}>
+                <QuestionCard q={q} index={absoluteIndex[q.id]} d={d}>
+                  <QuestionRenderer q={q} d={d} answers={answers} onAnswer={handleAnswer} />
+                </QuestionCard>
+              </div>
             )
           })}
         </div>

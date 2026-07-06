@@ -4,7 +4,7 @@ import type { DesignConfig } from '@/lib/types'
 import { THEME_PRESETS, SectionToggle, Row, Select, Tog } from '../primitives'
 import { HeaderSettings } from './themes/HeaderSettings'
 
-export function ThemesCenter({ d, set, formId }: { d: DesignConfig; set: (p: Partial<DesignConfig>) => void; formId: string }) {
+export function ThemesCenter({ d, set, formId, hasPageBreaks }: { d: DesignConfig; set: (p: Partial<DesignConfig>) => void; formId: string; hasPageBreaks?: boolean }) {
   const [o, setO] = useState<Record<string,boolean>>({ fonts: true, header: false, questions: false, buttons: false, progress: false, anim: false })
   const tog = (k: string) => setO(p => ({ ...p, [k]: !p[k] }))
 
@@ -92,9 +92,22 @@ export function ThemesCenter({ d, set, formId }: { d: DesignConfig; set: (p: Par
             <Select value={d.button_size} onChange={v => set({ button_size: v as any })}
               options={['Small','Medium','Large'].map(v => ({ value: v.toLowerCase(), label: v }))} />
           </Row>
+          <Row label="Button color">
+            <div className="flex items-center gap-2">
+              <input type="color" value={d.button_color || d.primary_color} onChange={e => set({ button_color: e.target.value })}
+                className="w-8 h-8 rounded-lg border border-slate-200 cursor-pointer p-0.5 bg-white" />
+              <span className="text-xs text-slate-600 uppercase font-mono">{d.button_color || d.primary_color}</span>
+            </div>
+          </Row>
+          {hasPageBreaks && (
+            <Row label="Back button">
+              <Select value={d.back_button_style} onChange={v => set({ back_button_style: v as any })}
+                options={[{value:'outline',label:'Outline'},{value:'solid',label:'Solid'},{value:'text',label:'Text'},{value:'hidden',label:'Hidden'}]} />
+            </Row>
+          )}
           <div className="flex justify-center">
             <button className="text-xs font-semibold text-white px-5 py-2 transition"
-              style={{ background: d.primary_color, borderRadius: d.button_shape === 'pill' ? '9999px' : d.button_shape === 'square' ? '0' : '8px' }}>
+              style={{ background: d.button_color || d.primary_color, borderRadius: d.button_shape === 'pill' ? '9999px' : d.button_shape === 'square' ? '0' : '8px' }}>
               Button
             </button>
           </div>

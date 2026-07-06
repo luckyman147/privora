@@ -1,8 +1,12 @@
 import { describe, it, expect, vi } from 'vitest'
 
-vi.mock('@/lib/supabase/server', () => ({
-  requireAuth: vi.fn().mockResolvedValue({ id: 'user-1' }),
-}))
+vi.mock('@/lib/supabase/server', () => {
+  const qb = { select() { return qb }, eq() { return qb }, maybeSingle: vi.fn().mockResolvedValue({ data: null }), upsert: vi.fn().mockResolvedValue({ error: null }) }
+  return {
+    requireAuth: vi.fn().mockResolvedValue({ id: 'user-1' }),
+    getSupabaseAction: vi.fn().mockResolvedValue({ from: vi.fn().mockReturnValue(qb) }),
+  }
+})
 vi.mock('@/lib/ai/client', () => ({
   callHuggingFaceChat: vi.fn(),
 }))

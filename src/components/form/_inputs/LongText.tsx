@@ -3,12 +3,14 @@ import type { DesignConfig, Question } from '@/lib/types'
 interface Props {
   q: Question
   d: DesignConfig
+  answers: Record<string, any>
   onAnswer: (key: string, value: any) => void
 }
 
-export function LongText({ q, d, onAnswer }: Props) {
+export function LongText({ q, d, answers, onAnswer }: Props) {
   return (
     <textarea placeholder={q.placeholder}
+      value={answers[q.id] ?? ''}
       onChange={e => onAnswer(q.id, e.target.value)}
       rows={4}
       style={{

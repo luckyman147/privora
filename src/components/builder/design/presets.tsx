@@ -59,10 +59,11 @@ export const LOGO_PRESETS: Preset[] = [
   { id: 'wind', label: 'Wind', render: (c, h) => icon(c, Wind, h) },
 ]
 
-export function renderLogo(d: DesignConfig, page: 'welcome' | 'thankyou', color: string): ReactNode | null {
+export function renderLogo(d: DesignConfig, page: 'welcome' | 'thankyou'): ReactNode | null {
   const preset = page === 'welcome' ? d.welcome_logo_preset : d.thankyou_logo_preset
   const url = page === 'welcome' ? d.welcome_logo_url : d.thankyou_logo_url
   const h = page === 'welcome' ? (d.welcome_logo_height ?? 56) : (d.thankyou_logo_height ?? 56)
+  const color = page === 'welcome' ? (d.welcome_logo_color || d.primary_color) : (d.thankyou_logo_color || d.primary_color)
   // eslint-disable-next-line @next/next/no-img-element
   if (url) return <img src={url} alt="" style={{ height: h, maxHeight: 200, objectFit: 'contain', marginBottom: 24 }} />
   const found = LOGO_PRESETS.find(p => p.id === preset)
@@ -70,14 +71,26 @@ export function renderLogo(d: DesignConfig, page: 'welcome' | 'thankyou', color:
   return null
 }
 
-export function PresetIcons({ value, onChange, color }: { value: string | undefined; onChange: (id: string | undefined) => void; color: string }) {
-  return (<div className="grid grid-cols-5 gap-2">
-    {LOGO_PRESETS.map(p => (
-      <button key={p.id} onClick={() => onChange(value === p.id ? undefined : p.id)}
-        className={`flex flex-col items-center gap-1 py-2 px-1 rounded-lg border-2 transition ${value === p.id ? 'border-violet-500 bg-violet-50' : 'border-slate-200 hover:border-slate-300'}`}>
-        {p.render(color)}
-        <span className="text-[9px] font-medium text-slate-500">{p.label}</span>
-      </button>
-    ))}
-  </div>)
+export function PresetIcons({ value, onChange, color, onClose }: {
+  value: string | undefined; onChange: (id: string | undefined) => void; color: string; onClose: () => void
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-[480px] max-h-[80vh] overflow-y-auto p-5" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-bold text-slate-800">Logo</h3>
+          <button onClick={onClose} className="w-7 h-7 rounded-full bg-slate-100 text-slate-500 text-sm flex items-center justify-center hover:bg-slate-200 transition">&#x2715;</button>
+        </div>
+        <div className="grid grid-cols-5 gap-2">
+          {LOGO_PRESETS.map(p => (
+            <button key={p.id} onClick={() => { onChange(value === p.id ? undefined : p.id); onClose() }}
+              className={`flex flex-col items-center gap-1 py-2 px-1 rounded-lg border-2 transition ${value === p.id ? 'border-violet-500 bg-violet-50' : 'border-slate-200 hover:border-slate-300'}`}>
+              {p.render(color)}
+              <span className="text-[9px] font-medium text-slate-500">{p.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
 }

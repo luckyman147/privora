@@ -1,6 +1,6 @@
 'use client'
-import { useState } from 'react'
-import { generateFormFromPrompt } from '@/app/builder/ai-actions'
+import { useState, useEffect } from 'react'
+import { generateFormFromPrompt, getRemainingAiGenerations } from '@/app/builder/ai-actions'
 import { GeneratedPreview } from './GeneratedPreview'
 import type { Question, DesignConfig } from '@/lib/types'
 
@@ -20,6 +20,11 @@ export function AIGeneratorPanel({ onApplyGenerated }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError]     = useState<string | null>(null)
   const [result, setResult]   = useState<Generated | null>(null)
+  const [remaining, setRemaining] = useState(0)
+
+  useEffect(() => {
+    getRemainingAiGenerations().then(setRemaining).catch(() => {})
+  }, [])
 
   async function handleGenerate() {
     setLoading(true)
@@ -27,6 +32,7 @@ export function AIGeneratorPanel({ onApplyGenerated }: Props) {
     try {
       const generated = await generateFormFromPrompt(prompt)
       setResult(generated)
+      getRemainingAiGenerations().then(setRemaining).catch(() => {})
     } catch (err) {
       setError(err instanceof Error ? err.message : 'AI generation failed')
     } finally {
@@ -39,8 +45,8 @@ export function AIGeneratorPanel({ onApplyGenerated }: Props) {
       <GeneratedPreview
         title={result.title} description={result.description}
         questions={result.questions} design={result.design_config}
-        onApply={() => {
-          onApplyGenerated(result.questions, result.design_config, result.title, result.description)
+        onApply={(questions) => {
+          onApplyGenerated(questions, result.design_config, result.title, result.description)
           setResult(null); setPrompt('')
         }}
         onDiscard={() => setResult(null)}
@@ -58,10 +64,11 @@ export function AIGeneratorPanel({ onApplyGenerated }: Props) {
       <textarea value={prompt} onChange={e => setPrompt(e.target.value)}
         placeholder="e.g. A 5-question satisfaction survey for a university course…" rows={4}
         className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-violet-400 resize-none" />
-      <button onClick={handleGenerate} disabled={loading || !prompt.trim()}
+      <button onClick={handleGenerate} disabled={loading || !prompt.trim() || remaining === 0}
         className="w-full py-2.5 bg-violet-500 hover:bg-violet-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition">
-        {loading ? 'Generating…' : 'Generate form'}
+        {loading ? 'Generating…' : remaining === 0 ? 'Daily limit reached' : 'Generate form'}
       </button>
+      <p className="text-xs text-slate-400">{remaining} of 2 AI generations remaining today</p>
       {error && (
         <p className="text-xs text-red-500">
           {error} — <button onClick={handleGenerate} className="underline">Try again</button>

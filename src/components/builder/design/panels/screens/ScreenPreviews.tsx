@@ -1,6 +1,6 @@
 'use client'
 import type { Form, DesignConfig } from '@/lib/types'
-import { resolvePageBg, renderLogo } from '../../primitives'
+import { resolvePageBg, renderLogo, screenGap } from '../../primitives'
 
 function contAnim(a?: string): React.CSSProperties {
   if (!a || a === 'none') return {}
@@ -27,20 +27,21 @@ export function WelcomePreview({ form, design }: { form: Form; design: DesignCon
   const contBg = design.welcome_container_bg || '#ffffff'
   const contBdr = design.welcome_container_border_color || '#e2e8f0'
   const contBw = design.welcome_container_border_width ?? 1
+  const gap = screenGap(design.welcome_spacing)
 
   const inner = (
-    <>
-      <div style={{ display: 'flex', justifyContent: layout === 'center' ? 'center' : 'flex-start', marginBottom: 8 }}>
-        {renderLogo(design, 'welcome', design.primary_color)}
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: layout === 'left' ? 'flex-start' : 'center', gap }}>
+      <div style={{ display: 'flex', justifyContent: layout === 'center' ? 'center' : 'flex-start' }}>
+        {renderLogo(design, 'welcome')}
       </div>
-      <h1 className="text-xl font-bold mb-3" style={{ color: textColor }}>{title}</h1>
-      {subtitle && <p className="text-sm mb-4" style={{ color: textColor + 'cc' }}>{subtitle}</p>}
-      {design.welcome_content && <p className="text-sm mb-4 text-slate-500">{design.welcome_content}</p>}
-      {design.welcome_container_content && <p className="text-xs mb-4 text-slate-600">{design.welcome_container_content}</p>}
+      <h1 className="text-xl font-bold" style={{ color: textColor }}>{title}</h1>
+      {subtitle && <p className="text-sm" style={{ color: textColor + 'cc' }}>{subtitle}</p>}
+      {design.welcome_content && <p className="text-sm text-slate-500">{design.welcome_content}</p>}
+      {design.welcome_container_content && <p className="text-xs text-slate-600">{design.welcome_container_content}</p>}
       <button className="text-sm font-semibold text-white" style={{ background: btnColor, borderRadius: btnR, padding: btnPad, border: 'none', cursor: 'pointer' }}>
         {design.welcome_button_label || 'Start'}
       </button>
-    </>
+    </div>
   )
 
   return (
@@ -65,12 +66,11 @@ export function ThankyouPreview({ form, design }: { form: Form; design: DesignCo
   const contBg = design.thankyou_container_bg || '#ffffff'
   const contBdr = design.thankyou_container_border_color || '#e2e8f0'
   const contBw = design.thankyou_container_border_width ?? 1
+  const gap = screenGap(design.thankyou_spacing)
 
   const inner = (
-    <>
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
-        {renderLogo(design, 'thankyou', design.primary_color)}
-      </div>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap }}>
+      <div style={{ display: 'flex', justifyContent: 'center' }}>{renderLogo(design, 'thankyou')}</div>
       <h2 className="text-lg font-bold" style={{ color: textColor }}>{title}</h2>
       <p className="text-sm" style={{ color: textColor + 'cc' }}>{msg}</p>
       {design.thankyou_container_content && <p className="text-xs text-slate-600">{design.thankyou_container_content}</p>}
@@ -79,7 +79,7 @@ export function ThankyouPreview({ form, design }: { form: Form; design: DesignCo
           {design.thankyou_button_label || 'Submit another'}
         </button>
       )}
-    </>
+    </div>
   )
 
   return (

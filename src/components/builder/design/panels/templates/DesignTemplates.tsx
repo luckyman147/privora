@@ -1,64 +1,149 @@
 'use client'
+import { useState, useEffect } from 'react'
 import type { DesignConfig } from '@/lib/types'
+import { Plus, Trash2 } from 'lucide-react'
+import { TEMPLATES, CATEGORIES } from './data'
+import type { Template } from './data'
 
-interface Template {
-  id: string; name: string; desc: string
-  colors: string[]; patch: Partial<DesignConfig>
+const STORAGE_KEY = 'privora_personal_templates'
+
+interface PersonalTemplate {
+  id: string; name: string; patch: Partial<DesignConfig>
 }
 
-const TEMPLATES: Template[] = [
-  { id: 'modern', name: 'Modern', desc: 'Clean purple gradient with soft shadows',
-    colors: ['#7C3AED','#A855F7','#F6F7FB','#FFFFFF'],
-    patch: { primary_color: '#7C3AED', background_color: '#F6F7FB', header_type: 'gradient', header_height: 'medium', header_title_color: '#FFFFFF', header_desc_color: '#E9D5FF', card_style: 'soft_shadow', corner_radius: 'large', border_radius: 'medium', question_layout: 'cards', button_shape: 'rounded', button_size: 'medium', heading_font: 'Poppins', body_font: 'Inter', base_size: '16px', progress_bar: true, progress_style: 'line', progress_color: '#7C3AED', animations: true, page_transition: 'fade', element_animation: 'slide_up', form_width: 'medium', page_padding: 'large', question_spacing: 'comfortable', background_type: 'solid' } },
-  { id: 'soft', name: 'Soft', desc: 'Gentle pink with rounded cards',
-    colors: ['#F472B6','#F9A8D4','#FFF1F5','#FFFFFF'],
-    patch: { primary_color: '#F472B6', background_color: '#FFF1F5', header_type: 'solid', header_height: 'medium', header_title_color: '#FFFFFF', header_desc_color: '#FCE7F3', card_style: 'border', corner_radius: 'full', border_radius: 'large', question_layout: 'cards', button_shape: 'pill', button_size: 'medium', heading_font: 'Inter', body_font: 'Inter', base_size: '16px', progress_bar: true, progress_style: 'bar', progress_color: '#F472B6', animations: true, page_transition: 'fade', element_animation: 'slide_up', form_width: 'medium', page_padding: 'large', question_spacing: 'comfortable', background_type: 'solid' } },
-  { id: 'minimal', name: 'Minimal', desc: 'Clean slate with flat design',
-    colors: ['#64748B','#94A3B8','#FFFFFF','#F8FAFC'],
-    patch: { primary_color: '#64748B', background_color: '#FFFFFF', header_type: 'none', header_height: 'small', card_style: 'flat', corner_radius: 'none', border_radius: 'small', question_layout: 'minimal', button_shape: 'square', button_size: 'small', heading_font: 'Inter', body_font: 'Inter', base_size: '15px', progress_bar: false, progress_style: 'line', progress_color: '#64748B', animations: false, page_transition: 'none', element_animation: 'none', form_width: 'narrow', page_padding: 'small', question_spacing: 'compact', background_type: 'solid' } },
-  { id: 'bold', name: 'Bold', desc: 'Dark navy with gradient header',
-    colors: ['#1E293B','#334155','#F8FAFC','#E2E8F0'],
-    patch: { primary_color: '#1E293B', background_color: '#F8FAFC', header_type: 'gradient', header_height: 'large', header_title_color: '#FFFFFF', header_desc_color: '#CBD5E1', card_style: 'soft_shadow', corner_radius: 'small', border_radius: 'small', question_layout: 'cards', button_shape: 'square', button_size: 'large', heading_font: 'Poppins', body_font: 'Inter', base_size: '17px', progress_bar: true, progress_style: 'line', progress_color: '#1E293B', animations: true, page_transition: 'slide', element_animation: 'fade', form_width: 'wide', page_padding: 'medium', question_spacing: 'standard', background_type: 'solid' } },
-  { id: 'ocean', name: 'Ocean', desc: 'Blue tones with smooth gradient',
-    colors: ['#3B82F6','#60A5FA','#EFF6FF','#FFFFFF'],
-    patch: { primary_color: '#3B82F6', background_color: '#EFF6FF', header_type: 'gradient', header_height: 'medium', header_title_color: '#FFFFFF', header_desc_color: '#BFDBFE', card_style: 'soft_shadow', corner_radius: 'large', border_radius: 'medium', question_layout: 'cards', button_shape: 'rounded', button_size: 'medium', heading_font: 'Inter', body_font: 'Inter', base_size: '16px', progress_bar: true, progress_style: 'line', progress_color: '#3B82F6', animations: true, page_transition: 'fade', element_animation: 'slide_up', form_width: 'medium', page_padding: 'large', question_spacing: 'comfortable', background_type: 'gradient', gradient_color_1: '#3B82F6', gradient_color_2: '#1D4ED8', gradient_angle: '135deg' } },
-  { id: 'nature', name: 'Nature', desc: 'Green emerald with organic feel',
-    colors: ['#22C55E','#4ADE80','#F0FDF4','#FFFFFF'],
-    patch: { primary_color: '#22C55E', background_color: '#F0FDF4', header_type: 'solid', header_height: 'medium', header_title_color: '#FFFFFF', header_desc_color: '#BBF7D0', card_style: 'border', corner_radius: 'medium', border_radius: 'large', question_layout: 'shared', button_shape: 'rounded', button_size: 'medium', heading_font: 'Inter', body_font: 'Inter', base_size: '16px', progress_bar: true, progress_style: 'bar', progress_color: '#22C55E', animations: true, page_transition: 'fade', element_animation: 'slide_up', form_width: 'medium', page_padding: 'large', question_spacing: 'standard', background_type: 'solid' } },
-  { id: 'sunset', name: 'Sunset', desc: 'Orange warmth with pill buttons',
-    colors: ['#F97316','#FB923C','#FFF7ED','#FFFFFF'],
-    patch: { primary_color: '#F97316', background_color: '#FFF7ED', header_type: 'gradient', header_height: 'medium', header_title_color: '#FFFFFF', header_desc_color: '#FED7AA', card_style: 'soft_shadow', corner_radius: 'full', border_radius: 'medium', question_layout: 'cards', button_shape: 'pill', button_size: 'large', heading_font: 'Poppins', body_font: 'Inter', base_size: '16px', progress_bar: true, progress_style: 'line', progress_color: '#F97316', animations: true, page_transition: 'slide', element_animation: 'slide_up', form_width: 'medium', page_padding: 'large', question_spacing: 'comfortable', background_type: 'gradient', gradient_color_1: '#F97316', gradient_color_2: '#EA580C', gradient_angle: '135deg' } },
-  { id: 'crimson', name: 'Crimson', desc: 'Red energy with square corners',
-    colors: ['#EF4444','#F87171','#FEF2F2','#FFFFFF'],
-    patch: { primary_color: '#EF4444', background_color: '#FEF2F2', header_type: 'solid', header_height: 'medium', header_title_color: '#FFFFFF', header_desc_color: '#FECACA', card_style: 'flat', corner_radius: 'none', border_radius: 'small', question_layout: 'shared', button_shape: 'square', button_size: 'medium', heading_font: 'Inter', body_font: 'Inter', base_size: '16px', progress_bar: true, progress_style: 'bar', progress_color: '#EF4444', animations: true, page_transition: 'fade', element_animation: 'fade', form_width: 'medium', page_padding: 'medium', question_spacing: 'compact', background_type: 'solid' } },
-]
+function loadPersonal(): PersonalTemplate[] {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]') }
+  catch { return [] }
+}
+
+function MiniPreview({ patch, category }: { patch: Partial<DesignConfig>; category?: Template['category'] }) {
+  const primary = patch.primary_color || '#7C3AED'
+  const bg = patch.background_color || '#F6F7FB'
+  const isImage = category === 'image' || patch.background_type === 'image'
+  const imgUrl = (patch as any).background_image_url
+  const hasGrad = category === 'gradient' || patch.background_type === 'gradient'
+  const c1 = (patch as any).gradient_color_1 || primary
+  const c2 = (patch as any).gradient_color_2 || '#a855f7'
+  const ht = patch.header_type || 'gradient'
+  const headerBg = ht === 'none' ? 'transparent'
+    : ht === 'image' ? `url(${(patch as any).header_image_url}) center/cover`
+    : hasGrad ? `linear-gradient(135deg, ${c1}, ${c2})` : primary
+  return (
+    <div className="w-full h-24 rounded-lg overflow-hidden border border-slate-200 relative"
+      style={{ background: isImage && imgUrl ? `url(${imgUrl}) center/cover` : bg }}>
+      {isImage && imgUrl && <div className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.35)' }} />}
+      <div className="relative h-full flex flex-col">
+        <div className="h-8 flex items-center px-2.5" style={{ background: headerBg }}>
+          <div className="h-2.5 w-16 rounded-sm" style={{ background: 'rgba(255,255,255,0.5)' }} />
+          <div className="h-1.5 w-10 rounded-sm ml-2" style={{ background: 'rgba(255,255,255,0.25)' }} />
+        </div>
+        <div className="flex-1 px-2.5 py-1.5 flex flex-col gap-1">
+          <div className="rounded border border-slate-200 p-1.5 flex-1" style={{ background: '#fff' }}>
+            <div className="h-1.5 rounded-full w-3/4" style={{ background: '#e2e8f0' }} />
+            <div className="h-1 rounded-full w-1/2 mt-1" style={{ background: '#f1f5f9' }} />
+          </div>
+          <div className="h-4 rounded w-10 self-end" style={{ background: primary }} />
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export function DesignTemplates({ d, set }: { d: DesignConfig; set: (p: Partial<DesignConfig>) => void }) {
+  const [personal, setPersonal] = useState<PersonalTemplate[]>([])
+  const [saving, setSaving] = useState(false)
+  const [name, setName] = useState('')
+
+  useEffect(() => { setPersonal(loadPersonal()) }, [])
+
+  function saveTemplate() {
+    const n = name.trim() || `My Template ${personal.length + 1}`
+    const next = [...personal, { id: `p_${Date.now()}`, name: n, patch: { ...d } }]
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
+    setPersonal(next)
+    setName('')
+    setSaving(false)
+  }
+
+  function deleteTemplate(id: string) {
+    const next = personal.filter(p => p.id !== id)
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
+    setPersonal(next)
+  }
+
+  const isActive = (p: Partial<DesignConfig>) =>
+    d.primary_color === p.primary_color && d.card_style === p.card_style
+
   return (
     <div className="flex-1 overflow-y-auto p-6">
-      <h2 className="text-lg font-bold text-slate-900 mb-1">Design Templates</h2>
-      <p className="text-sm text-slate-400 mb-6">Choose a pre-made design to instantly style your form</p>
-      <div className="grid grid-cols-2 gap-4">
-        {TEMPLATES.map(t => {
-          const active = d.primary_color === t.patch.primary_color && d.card_style === t.patch.card_style
-          return (
-            <button key={t.id} onClick={() => set(t.patch)}
-              className={`relative text-left rounded-xl border-2 p-4 transition hover:shadow-md ${active ? 'border-violet-500 bg-violet-50' : 'border-slate-200 bg-white hover:border-slate-300'}`}>
-              {active && <span className="absolute top-2 right-2 w-5 h-5 bg-violet-500 rounded-full flex items-center justify-center">
-                <svg viewBox="0 0 20 20" fill="white" className="w-3 h-3"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-              </span>}
-              <div className="flex gap-1.5 mb-3">
-                {t.colors.map((c, i) => (
-                  <div key={i} className="h-8 flex-1 rounded-lg first:rounded-l-xl last:rounded-r-xl" style={{ background: c }} />
-                ))}
-              </div>
-              <h3 className="text-sm font-semibold text-slate-900">{t.name}</h3>
-              <p className="text-xs text-slate-400 mt-0.5">{t.desc}</p>
-              <p className="text-[10px] text-slate-400 mt-1.5 font-medium tracking-wide">{t.colors[0]} · {t.patch.heading_font}</p>
-            </button>
-          )
-        })}
+      <div className="flex items-center justify-between mb-1">
+        <h2 className="text-lg font-bold text-slate-900">Design Templates</h2>
+        {saving
+          ? <div className="flex items-center gap-2">
+              <input type="text" value={name} onChange={e => setName(e.target.value)}
+                placeholder="Template name" autoFocus
+                onKeyDown={e => e.key === 'Enter' && saveTemplate()}
+                className="w-36 text-xs border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-violet-400" />
+              <button onClick={saveTemplate} className="text-xs font-semibold text-violet-600 hover:text-violet-700">Save</button>
+              <button onClick={() => setSaving(false)} className="text-xs text-slate-400 hover:text-slate-600">Cancel</button>
+            </div>
+          : <button onClick={() => setSaving(true)}
+              className="flex items-center gap-1 text-xs font-semibold text-violet-600 hover:text-violet-700">
+              <Plus className="w-3.5 h-3.5" /> Save current
+            </button>}
       </div>
+      <p className="text-sm text-slate-400 mb-5">Pick a style to instantly transform your form</p>
+
+      {personal.length > 0 && (
+        <div className="mb-6">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
+            Personal
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {personal.map(p => (
+              <div key={p.id} className="relative group">
+                <button onClick={() => set(p.patch)}
+                  className={`w-full text-left rounded-xl border-2 p-3 transition hover:shadow-md ${isActive(p.patch) ? 'border-violet-500 bg-violet-50' : 'border-slate-200 bg-white hover:border-slate-300'}`}>
+                  <MiniPreview patch={p.patch} />
+                  <h3 className="text-sm font-semibold text-slate-900 mt-2">{p.name}</h3>
+                </button>
+                <button onClick={() => deleteTemplate(p.id)}
+                  className="absolute top-1 right-1 w-6 h-6 bg-white rounded-full border border-slate-200 flex items-center justify-center opacity-0 group-hover:opacity-100 transition hover:bg-red-50 hover:border-red-200 z-10">
+                  <Trash2 className="w-3 h-3 text-red-400" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {CATEGORIES.map(cat => {
+        const Icon = cat.icon
+        const items = TEMPLATES.filter(t => t.category === cat.id)
+        return (
+          <div key={cat.id} className="mb-6 last:mb-0">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
+              <Icon className="w-3.5 h-3.5" />{cat.label}
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {items.map(t => {
+                const active = isActive(t.patch)
+                return (
+                  <button key={t.id} onClick={() => set(t.patch)}
+                    className={`relative text-left rounded-xl border-2 p-3 transition hover:shadow-md ${active ? 'border-violet-500 bg-violet-50' : 'border-slate-200 bg-white hover:border-slate-300'}`}>
+                    {active && <span className="absolute top-2 right-2 w-5 h-5 bg-violet-500 rounded-full flex items-center justify-center z-10">
+                      <svg viewBox="0 0 20 20" fill="white" className="w-3 h-3"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                    </span>}
+                    <MiniPreview patch={t.patch} category={t.category} />
+                    <h3 className="text-sm font-semibold text-slate-900 mt-2">{t.name}</h3>
+                    <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">{t.desc}</p>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 }

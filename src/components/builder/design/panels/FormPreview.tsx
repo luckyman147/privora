@@ -128,7 +128,7 @@ export function FormPreview({ form, design }: { form: Form; design: DesignConfig
               {visibleQs.map((q, i) => <QuestionPreview key={q.id} q={q} i={i} d={design} />)}
             </div>
           )}
-          <button className={`text-[11px] font-semibold text-white ${btnPad} ${btnR}`} style={{ background: design.primary_color }}>
+          <button className={`text-[11px] font-semibold text-white ${btnPad} ${btnR}`} style={{ background: design.button_color || design.primary_color }}>
             Submit
           </button>
         </div>

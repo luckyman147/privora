@@ -36,7 +36,8 @@ export function MatrixQuestion({ q, d, answers, onAnswer }: Props) {
                 return (
                   <td key={ci} style={{ textAlign: 'center', padding: '8px 12px', borderLeft: '1px solid #f1f5f9', borderTop: '1px solid #f1f5f9' }}>
                     {col.type === 'short_answer' && (
-                      <input type="text" onChange={e => onAnswer(key, e.target.value)}
+                      <input type="text" value={answers[key] ?? ''}
+                        onChange={e => onAnswer(key, e.target.value)}
                         style={{ width: '100%', maxWidth: 110, padding: '4px 8px', fontSize: 12, border: '1px solid #e2e8f0', borderRadius: 6, outline: 'none' }}
                         onFocus={e => (e.target.style.borderColor = d.primary_color)}
                         onBlur={e => (e.target.style.borderColor = '#e2e8f0')} />
@@ -55,11 +56,13 @@ export function MatrixQuestion({ q, d, answers, onAnswer }: Props) {
                       </div>
                     )}
                     {col.type === 'checkbox' && (
-                      <input type="checkbox" onChange={e => onAnswer(key, e.target.checked)}
+                      <input type="checkbox" checked={answers[key] ?? false}
+                        onChange={e => onAnswer(key, e.target.checked)}
                         style={{ width: 16, height: 16, accentColor: d.primary_color }} />
                     )}
                     {col.type === 'date' && (
-                      <input type="date" onChange={e => onAnswer(key, e.target.value)}
+                      <input type="date" value={answers[key] ?? ''}
+                        onChange={e => onAnswer(key, e.target.value)}
                         style={{ fontSize: 11, padding: '3px 6px', border: '1px solid #e2e8f0', borderRadius: 6, outline: 'none' }}
                         onFocus={e => (e.target.style.borderColor = d.primary_color)}
                         onBlur={e => (e.target.style.borderColor = '#e2e8f0')} />

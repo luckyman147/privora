@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import { Share2, Code2, MessageCircle, ShieldCheck, Zap, MapPin } from 'lucide-react'
 
 export default function Footer() {
   const footerLinks = {
@@ -117,23 +118,23 @@ export default function Footer() {
               <a
                 href='#'
                 aria-label='Twitter'
-                className='w-8 h-8 flex items-center justify-center rounded-lg bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition text-sm'
+                className='w-8 h-8 flex items-center justify-center rounded-lg bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition'
               >
-                𝕏
+                <Share2 className='w-4 h-4' />
               </a>
               <a
                 href='#'
                 aria-label='GitHub'
-                className='w-8 h-8 flex items-center justify-center rounded-lg bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition text-sm'
+                className='w-8 h-8 flex items-center justify-center rounded-lg bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition'
               >
-                ⚙
+                <Code2 className='w-4 h-4' />
               </a>
               <a
                 href='#'
                 aria-label='Discord'
-                className='w-8 h-8 flex items-center justify-center rounded-lg bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition text-sm'
+                className='w-8 h-8 flex items-center justify-center rounded-lg bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition'
               >
-                💬
+                <MessageCircle className='w-4 h-4' />
               </a>
             </div>
           </div>
@@ -148,9 +149,9 @@ export default function Footer() {
             <span>All systems operational</span>
           </div>
           <div className='flex items-center gap-6'>
-            <span>🔒 SOC 2 Type II Certified</span>
-            <span>⚡ 99.99% Uptime SLA</span>
-            <span>🇺🇸 Data in US</span>
+            <span className='flex items-center gap-1.5'><ShieldCheck className='w-3.5 h-3.5' /> SOC 2 Type II Certified</span>
+            <span className='flex items-center gap-1.5'><Zap className='w-3.5 h-3.5' /> 99.99% Uptime SLA</span>
+            <span className='flex items-center gap-1.5'><MapPin className='w-3.5 h-3.5' /> Data in US</span>
           </div>
         </div>
       </div>

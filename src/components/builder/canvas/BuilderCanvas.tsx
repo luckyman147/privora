@@ -9,7 +9,7 @@ function FormHeader({ title, description, onTitleChange, onDescChange }: {
   onTitleChange: (v: string) => void; onDescChange: (v: string) => void
 }) {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+    <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm mb-3">
       <input type="text" value={title} onChange={e => onTitleChange(e.target.value)}
         placeholder="Form title"
         className="w-full text-2xl font-bold text-slate-900 bg-transparent focus:outline-none placeholder:text-slate-300 mb-2" />
@@ -22,7 +22,7 @@ function FormHeader({ title, description, onTitleChange, onDescChange }: {
 
 function WelcomeCard({ enabled, onToggle }: { enabled: boolean; onToggle: () => void }) {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 px-5 py-4 flex items-center gap-4 shadow-sm">
+    <div className="bg-white rounded-xl border border-slate-200 px-5 py-4 flex items-center gap-4 shadow-sm mb-3">
       <span className="w-10 h-10 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center shrink-0">
         <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clipRule="evenodd" /></svg>
       </span>
@@ -51,6 +51,22 @@ function QuickAddToolbar({ onAdd }: { onAdd: (t: QuestionType) => void }) {
   )
 }
 
+function PageBreakSlot({ index, onAdd }: { index: number; onAdd: (afterIndex: number) => void }) {
+  const [hover, setHover] = useState(false)
+  return (
+    <div className="mb-3 flex items-center justify-center" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
+      {hover ? (
+        <button onClick={() => onAdd(index)}
+          className="flex items-center gap-1 text-[11px] font-semibold text-slate-400 bg-white border border-slate-300 rounded-full px-3 py-1 shadow-sm hover:border-sky-400 hover:text-sky-600 transition-all">
+          + Page break
+        </button>
+      ) : (
+        <div className="h-3 w-full" />
+      )}
+    </div>
+  )
+}
+
 export interface DragHandlers {
   isDragging:  boolean; isDragOver:  boolean
   onDragStart: (e: React.DragEvent) => void; onDragEnd: () => void
@@ -65,9 +81,10 @@ interface Props {
   onCopy: (id: string) => void; onMove: (id: string, dir: -1 | 1) => void
   onReorder: (questions: import('@/lib/types').Question[]) => void
   onUpdate: (id: string, patch: Partial<import('@/lib/types').Question>) => void
+  onAddPageBreakAt?: (afterIndex: number) => void
 }
 
-export function BuilderCanvas({ title, description, questions, selectedId, onTitleChange, onDescChange, onSelect, onAdd, onDelete, onCopy, onMove, onReorder, onUpdate }: Props) {
+export function BuilderCanvas({ title, description, questions, selectedId, onTitleChange, onDescChange, onSelect, onAdd, onDelete, onCopy, onMove, onReorder, onUpdate, onAddPageBreakAt }: Props) {
   const [welcomeEnabled, setWelcomeEnabled] = useState(true)
   const [dragId, setDragId] = useState<string | null>(null)
   const [dragOverId, setDragOverId] = useState<string | null>(null)
@@ -90,16 +107,24 @@ export function BuilderCanvas({ title, description, questions, selectedId, onTit
 
   return (
     <main className="flex-1 bg-slate-50 overflow-y-auto flex flex-col">
-      <div className="flex-1 max-w-2xl mx-auto w-full py-8 px-6 space-y-3">
+      <div className="flex-1 max-w-2xl mx-auto w-full py-8 px-6">
         <FormHeader title={title} description={description} onTitleChange={onTitleChange} onDescChange={onDescChange} />
         <WelcomeCard enabled={welcomeEnabled} onToggle={() => setWelcomeEnabled(v => !v)} />
-        {questions.map(q => {
+        {questions.map((q, i) => {
           const drag = makeDragHandlers(q.id)
-          if (q.type === 'page_break') return <PageBreakCard key={q.id} drag={drag} selected={selectedId === q.id} onSelect={() => onSelect(q.id)} onDelete={() => onDelete(q.id)} />
-          if (q.type === 'section') return <SectionCard key={q.id} drag={drag} question={q} selected={selectedId === q.id} onSelect={() => onSelect(q.id)} onDelete={() => onDelete(q.id)} onUpdate={patch => onUpdate(q.id, patch)} />
-          const idx = displayIndex++
-          return <QuestionCard key={q.id} drag={drag} question={q} index={idx} selected={selectedId === q.id} allQuestions={questions} onSelect={() => onSelect(q.id)} onDelete={() => onDelete(q.id)} onCopy={() => onCopy(q.id)} onMoveUp={() => onMove(q.id, -1)} onMoveDown={() => onMove(q.id, 1)} onUpdate={patch => onUpdate(q.id, patch)} />
+          const element = q.type === 'page_break'
+            ? <PageBreakCard drag={drag} selected={selectedId === q.id} onSelect={() => onSelect(q.id)} onDelete={() => onDelete(q.id)} />
+            : q.type === 'section'
+            ? <SectionCard drag={drag} question={q} selected={selectedId === q.id} onSelect={() => onSelect(q.id)} onDelete={() => onDelete(q.id)} onUpdate={patch => onUpdate(q.id, patch)} />
+            : (() => { const idx = displayIndex++; return <QuestionCard drag={drag} question={q} index={idx} selected={selectedId === q.id} allQuestions={questions} onSelect={() => onSelect(q.id)} onDelete={() => onDelete(q.id)} onCopy={() => onCopy(q.id)} onMoveUp={() => onMove(q.id, -1)} onMoveDown={() => onMove(q.id, 1)} onUpdate={patch => onUpdate(q.id, patch)} /> })()
+          return (
+            <div key={q.id}>
+              {i > 0 && onAddPageBreakAt && <PageBreakSlot index={i - 1} onAdd={onAddPageBreakAt} />}
+              <div className="mb-3">{element}</div>
+            </div>
+          )
         })}
+        {questions.length > 0 && onAddPageBreakAt && <PageBreakSlot index={questions.length - 1} onAdd={onAddPageBreakAt} />}
         <button onClick={() => onAdd('short_text')}
           className="w-full py-5 rounded-xl border-2 border-dashed border-slate-200 text-slate-400 hover:border-sky-400 hover:text-sky-500 hover:bg-sky-50/50 transition flex flex-col items-center gap-1">
           <span className="text-sm font-semibold">+ Add question</span>

@@ -20,6 +20,7 @@ export default function AuthForm() {
   const [mode, setMode] = useState<Tab>('signin')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [loading, setLoading] = useState(false)
   const params = useSearchParams()
 
   useEffect(() => {
@@ -27,13 +28,17 @@ export default function AuthForm() {
     if (err) setError(decodeURIComponent(err))
   }, [params])
 
+  useEffect(() => { if (error) { const t = setTimeout(() => setError(''), 5000); return () => clearTimeout(t) } }, [error])
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError('')
+    setLoading(true)
     const fd = new FormData(e.currentTarget)
     const fn = mode === 'signup' ? signUp : signIn
     const result = await fn(fd) as { error?: string; success?: string | boolean } | void
-    if (!result) return
+    if (!result) return // redirect — component unmounts, no flash
+    setLoading(false)
     if (result.error) { setError(result.error); return }
     if (result.success === 'verify_email') setSuccess('Account created! Check your email to confirm.')
     else if (result.success) setSuccess('Magic link sent! Check your inbox.')
@@ -41,6 +46,7 @@ export default function AuthForm() {
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center px-8 py-12">
+      {error && <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 bg-red-500 text-white text-sm font-semibold rounded-xl shadow-lg">{error}</div>}
       <div className="w-full max-w-lg">
         <Link href="/" className="flex items-center gap-2 mb-12">
           <Image src="/images/logo.png" alt="Privora logo" width={32} height={32} className="h-8 w-8 rounded-lg object-cover" priority />
@@ -80,8 +86,8 @@ export default function AuthForm() {
                 <input name="email" type="email" placeholder="Email" required className={ic} />
                 <input name="password" type="password"
                   placeholder={mode === 'signin' ? 'Password' : 'Password (min 8 chars)'} required className={ic} />
-                {error && <p className="text-xs text-red-500">{error}</p>}
-                <button type="submit" className="w-full py-2.5 text-sm font-bold text-white bg-sky-500 rounded-xl hover:bg-sky-600">
+                <button type="submit" disabled={loading} className="w-full py-2.5 text-sm font-bold text-white bg-sky-500 rounded-xl hover:bg-sky-600 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                  {loading && <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>}
                   {LABEL[mode]}
                 </button>
               </form>

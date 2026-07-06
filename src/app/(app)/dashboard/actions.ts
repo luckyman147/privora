@@ -3,6 +3,13 @@ import { redirect } from 'next/navigation'
 import { getSupabaseAction as getSupabase } from '@/lib/supabase/server'
 import type { Question } from '@/lib/types'
 
+function uniqueTitle(desired: string, existing: string[]): string {
+  if (!existing.includes(desired)) return desired
+  let n = 2
+  while (existing.includes(`${desired} (${n})`)) n++
+  return `${desired} (${n})`
+}
+
 export async function logout() {
   const supabase = await getSupabase()
   await supabase.auth.signOut()
@@ -13,9 +20,13 @@ export async function createForm() {
   const supabase = await getSupabase()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Not authenticated')
+  const { data: existing } = await (supabase as any)
+    .from('forms').select('title').eq('owner_id', user.id)
+  const titles = (existing ?? []).map((r: any) => r.title)
+  const title = uniqueTitle('Untitled', titles)
   const { data, error } = await supabase
     .from('forms')
-    .insert({ owner_id: user.id, title: 'Untitled', mode: 'survey', trust_config: {}, questions: [] } as never)
+    .insert({ owner_id: user.id, title, mode: 'survey', trust_config: {}, questions: [] } as never)
     .select('id')
     .single()
   if (error) throw new Error(error.message)
@@ -40,9 +51,14 @@ export async function createFromTemplate(templateId: string) {
     return { ...rest, id: `q_${crypto.randomUUID().replace(/-/g, '').slice(0, 12)}` }
   })
 
+  const { data: existing } = await (supabase as any)
+    .from('forms').select('title').eq('owner_id', user.id)
+  const titles = (existing ?? []).map((r: any) => r.title)
+  const title = uniqueTitle(tpl.name, titles)
+
   const { data, error } = await supabase
     .from('forms')
-    .insert({ owner_id: user.id, title: tpl.name, mode: 'survey', trust_config: {}, questions } as never)
+    .insert({ owner_id: user.id, title, mode: 'survey', trust_config: {}, questions } as never)
     .select('id')
     .single()
   if (error) throw new Error(error.message)

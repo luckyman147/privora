@@ -3,17 +3,21 @@ import { z } from 'zod'
 export const GENERATED_QUESTION_TYPES = [
   'short_text', 'long_text', 'multiple_choice',
   'checkboxes', 'dropdown', 'rating', 'date',
-  'section', 'page_break',
+  'matrix', 'file_upload', 'section', 'page_break',
 ] as const
 
 export const generatedQuestionSchema = z.object({
-  type:        z.enum(GENERATED_QUESTION_TYPES),
-  label:       z.string().min(1),
-  description: z.string().optional(),
-  required:    z.boolean().default(false),
-  placeholder: z.string().optional(),
-  options:     z.array(z.string()).optional(),
-  max_rating:  z.number().optional(),
+  type:           z.enum(GENERATED_QUESTION_TYPES),
+  label:          z.string().min(1),
+  description:    z.string().optional(),
+  required:       z.boolean().default(false),
+  placeholder:    z.string().optional(),
+  options:        z.array(z.string()).optional(),
+  max_rating:     z.number().optional(),
+  rows:           z.array(z.string()).optional(),
+  columns:        z.array(z.string()).optional(),
+  max_files:      z.number().optional(),
+  accepted_types: z.array(z.string()).optional(),
 })
 
 export const generatedDesignSchema = z.object({
