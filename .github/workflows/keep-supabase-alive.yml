@@ -12,10 +12,14 @@ jobs:
       - name: Ping Supabase to keep alive
         env:
           SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || vars.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
         run: |
-          if [ -z "$SUPABASE_URL" ]; then
-            echo "Missing Supabase URL. Set NEXT_PUBLIC_SUPABASE_URL as a secret or repository variable."
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_KEY" ]; then
+            echo "Missing Supabase URL or publishable key. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY as secrets or repository variables."
             exit 1
           fi
 
-          curl -sS -o /dev/null -w "%{http_code}\n" "${SUPABASE_URL}/auth/v1/health"
+          curl -sS -o /dev/null -w "%{http_code}\n" \
+            -H "apikey: ${SUPABASE_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_KEY}" \
+            "${SUPABASE_URL}/auth/v1/health"
