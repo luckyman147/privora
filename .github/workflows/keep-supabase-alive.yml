@@ -11,15 +11,24 @@ jobs:
     steps:
       - name: Ping Supabase to keep alive
         env:
-          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || vars.NEXT_PUBLIC_SUPABASE_URL }}
-          SUPABASE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || vars.NEXT_PUBLIC_SUPABASE_URL || secrets.SUPABASE_URL || vars.SUPABASE_URL || (secrets.SUPABASE_PROJECT_ID && format('https://{0}.supabase.co', secrets.SUPABASE_PROJECT_ID)) || (vars.SUPABASE_PROJECT_ID && format('https://{0}.supabase.co', vars.SUPABASE_PROJECT_ID)) }}
+          SUPABASE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || secrets.SUPABASE_ANON_KEY || vars.SUPABASE_ANON_KEY || secrets.SUPABASE_KEY || vars.SUPABASE_KEY }}
         run: |
           if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_KEY" ]; then
-            echo "Missing Supabase URL or publishable key. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY as secrets or repository variables."
+            echo "Error: Missing Supabase URL or Key."
+            echo "Please set NEXT_PUBLIC_SUPABASE_URL / SUPABASE_PROJECT_ID and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY / SUPABASE_ANON_KEY in your GitHub Secrets or Variables."
             exit 1
           fi
 
-          curl -sS -o /dev/null -w "%{http_code}\n" \
+          echo "Pinging Supabase Auth Health endpoint..."
+          STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
             -H "apikey: ${SUPABASE_KEY}" \
             -H "Authorization: Bearer ${SUPABASE_KEY}" \
-            "${SUPABASE_URL}/auth/v1/health"
+            "${SUPABASE_URL}/auth/v1/health")
+
+          echo "Response status code: $STATUS_CODE"
+          if [ "$STATUS_CODE" -ne 200 ]; then
+            echo "Error: Health check failed with status $STATUS_CODE"
+            exit 1
+          fi
+          echo "Health check succeeded!"
